@@ -11,13 +11,13 @@
 /// bit 6-12: #2 (from 0 to 63) [Most amount of en passant moves in a single position is 2]
 /// Castling Rights: Short White(1st bit), Long White (2nd bit), Short Black (3rd bit), Long Black (4th bit)
 
-unsigned int generatePsuedoLegalMoves(uint64_t bitboards[8], uint16_t movesList[128], uint16_t enPassantSquares, char castlingRights, char color){
+unsigned int generatePsuedoLegalMoves(uint64_t bitboards[8], uint16_t movesList[64], uint16_t enPassantSquares, char castlingRights, char color){
 
   //generateMoveMasks();
   unsigned int movesNum = 0;
   
   uint64_t allBitboard = (bitboards[White] | bitboards[Black]);
-  uint64_t colorBitboard = bitboards[color];
+  uint64_t colorBitboardCopy = bitboards[color];
 
   //================//
   //Helper Functions//
@@ -98,7 +98,7 @@ unsigned int generatePsuedoLegalMoves(uint64_t bitboards[8], uint16_t movesList[
   
   //Iterate the squares of the board and generate moves for Piece on squareIndex
   for (unsigned int i = 0; i < __builtin_popcountll(bitboards[color]); i++) {
-    uint64_t squareBitboard = popLSB(colorBitboard);
+    uint64_t squareBitboard = popLSB(colorBitboardCopy);
     char squareIndex = log2(squareBitboard);
 
     //Generate Pawn Moves
