@@ -1,41 +1,59 @@
-#include <stdint.h>
+#include <cstdint>
 
-#include "makeMove.hpp"
+#include "../utils/enums.hpp"
 
-void makeMove(uint64_t bitboards[8], uint16_t move, char color){
-  char destinationSquare = (move & 0x3F);
-  char originSquare = ((move & 0xFC0) >> 6);
-  //Offset is set accordingly to: "enums.hpp" [1]
-  char promotionPiece = (((move & 0x3000) + 3) >> 12);
-  char specialMove = ((move & 0xC000) >> 14);
-    
-  auto typeOnSquare = [&](char squareIndex) -> char {
-    //Offset is set accordingly to: "enums.hpp" [2]
-    for (char pieceType = 2; pieceType < 8; pieceType++) {
-      if (((1ul << squareIndex) & bitboards[pieceType]) != 0){ 
-        return pieceType; 
+int makeMove(uint64_t pieceBitboard[8], uint16_t move, bool unmakeMove = 0, int capturedPiece = 0){
+  const uint64_t destinationSquare = 1ul << (move & 0x3F);
+  const uint64_t originSquare = 1ul << ((move & 0xFC0) >> 6);
+  const int moveFlag = ((move & 0x3000) >> 12);
+  const int promotionPiece = (((move & 0xC000) >> 14) + 2);
+
+  if (moveFlag == Castling) {
+    switch (move) {
+      case kingSideCastleWhite: 
+        (pieceBitboard[Rook])  ^= ((1ul << 63) | (1ul << 61));
+        (pieceBitboard[White]) ^= ((1ul << 63) | (1ul << 61)); break;
+      case queenSideCastleWhite: 
+        (pieceBitboard[Rook])  ^= ((1ul << 56) | (1ul << 59));
+        (pieceBitboard[White]) ^= ((1ul << 56) | (1ul << 59)); break;
+      case kingSideCastleBlack: 
+        (pieceBitboard[Rook])  ^= ((1ul << 7) | (1ul << 5));
+        (pieceBitboard[Black]) ^= ((1ul << 7) | (1ul << 5)); break;
+      case queenSideCastleBlack: 
+        (pieceBitboard[Rook])  ^= ((1ul << 0) | (1ul << 3));
+        (pieceBitboard[Black]) ^= ((1ul << 0) | (1ul << 3)); break;
+    }
+  }
+  
+  int movingPiece = 0;
+  for (int pieceColor=White; pieceColor<=Black; pieceColor+=Black){
+    for (int pieceType=Pawn; pieceType<=King; pieceType++) { 
+      if((originSquare & pieceBitboard[pieceColor] & pieceBitboard[pieceType]) && !unmakeMove){
+        movingPiece = (pieceColor + pieceType);
       }
-      else {return 0;}
+      if(destinationSquare & pieceBitboard[pieceColor] & pieceBitboard[pieceType]){
+        (unmakeMove ? movingPiece : capturedPiece) = (pieceColor + pieceType);
+      }
     }
-  };
+  } 
 
-  //Promotion
-  if (specialMove == 1){
-    bitboards[color] ^= (1ul << originSquare);
-    bitboards[color] |= (1ul << destinationSquare);
-    bitboards[typeOnSquare(originSquare)] ^= (1ul << originSquare);
-    bitboards[promotionPiece] |= (1ul << destinationSquare);
+  pieceBitboard[movingPiece < Black ? White : Black] ^= (originSquare | destinationSquare);
+  pieceBitboard[movingPiece < Black ? movingPiece : (movingPiece-Black)] ^= (originSquare | destinationSquare);
+
+  if (capturedPiece) {
+    pieceBitboard[capturedPiece < Black ? White : Black] ^= destinationSquare;
+    pieceBitboard[capturedPiece < Black ? capturedPiece : (capturedPiece-Black)] ^= destinationSquare;
   }
-  else {
-    //Change opponent bitboards (If it's a capture move)
-    if ((1ul << destinationSquare) & bitboards[!color]){
-      for (unsigned int i = 0; i < 2; i++) {
-        bitboards[i == 0 ? typeOnSquare(destinationSquare) : !color] ^= (1ul << destinationSquare); }
-    };
-    //Change friendly bitboards
-    for (unsigned int i = 0; i < 2; i++) {
-      bitboards[color] ^= (1ul << (i == 0 ? destinationSquare : originSquare));
-      bitboards[typeOnSquare(originSquare)] ^= (1ul << (i == 0 ? destinationSquare: originSquare));
+  if (moveFlag == Promotion) {
+    if (!unmakeMove) {
+      pieceBitboard[movingPiece < Black ? movingPiece : (movingPiece-Black)] ^= destinationSquare;
+      pieceBitboard[promotionPiece] ^= destinationSquare;
+    }
+    else {
+      pieceBitboard[movingPiece < Black ? movingPiece : (movingPiece-Black)] ^= originSquare;
+      pieceBitboard[Pawn] ^= originSquare;
     }
   }
+  
+  return capturedPiece;
 }

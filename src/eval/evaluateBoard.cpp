@@ -1,42 +1,82 @@
-#include <stdint.h>
-#include <math.h>
+#include <bitset>
+#include <cmath>
+#include <cstdint>
 
 #include "evaluateBoard.hpp"
 #include "../utils/enums.hpp"
-#include "../utils/popLSB.hpp"
 
-int evaluateBoard(uint64_t bitboards[8], char color){
-  uint64_t friendlyBitboard, opponentBitboard, piecePosition;
-  int friendlyEval = 0, opponentEval = 0;
-  char isEndGame = 0;
-  
-  //Alternate between pieces (2: Pawn, 7: King) See: "enums.hpp"
-  for (unsigned int pieceType = 2; pieceType < 8; pieceType++) {
-    //Evaluate for number of pieces
-    friendlyEval += (__builtin_popcountll(bitboards[pieceType] & bitboards[color]) * (
-    pieceType == Pawn ? pawnValue :pieceType == Knight ? knightValue : pieceType == Bishop ? bishopValue :
-    pieceType == Rook ? rookValue : pieceType == Queen ? queenValue : kingValue));
-    
-    opponentEval += (__builtin_popcountll(bitboards[pieceType] & bitboards[!color]) * (
-    pieceType == Pawn ? pawnValue :pieceType == Knight ? knightValue : pieceType == Bishop ? bishopValue :
-    pieceType == Rook ? rookValue : pieceType == Queen ? queenValue : kingValue));
+int evaluatePawnStructure(uint64_t pieceBitboard[8], int square, int pieceColor){
+  int evalScore = 0;
+  evalScore += (pieceColor == White ? pawnTableWhite[square] : pawnTableBlack[square]);
+  if (!((pieceBitboard[Pawn] & pieceBitboard[pieceColor]) & ((1ul << (square+8)) | (1ul >> (square+8)))))
+  { evalScore += isolatedPawnPenalty; } 
+  if (!((fileMasks[square%8] | fileMasks[((square%8)-1) > 0 ? ((square%8)-1) : (square%8)]
+  | fileMasks[((square%8)+1) < 8 ? ((square%8)+1) : (square%8)])
+  & (((pieceBitboard[White] | pieceBitboard[Black]) & pieceBitboard[Pawn]) ^ (1ul << square))))
+  { evalScore += passedPawnBonus; }  
+  if ((fileMasks[square%8] & pieceBitboard[pieceColor] & pieceBitboard[Pawn]) ^ (1ul << square))
+  { evalScore += doublePawnPenalty; }
+  return evalScore;
+}
 
-    //Evaluate for piece tables
-    //Alternate between Friendly (i = 0) and opponent (i=1) Pieces
-    for (unsigned int i = 0; i < 2; i++) {
-      (i == 0 ? friendlyBitboard : opponentBitboard) = (bitboards[pieceType] & bitboards[(i == 0 ? color : !color)]);
-      for (unsigned int j = 0; j < __builtin_popcountll(bitboards[pieceType] & bitboards[(i == 0 ? color : !color)]); j++) {
-        piecePosition = log2(popLSB(i == 0 ? friendlyBitboard : opponentBitboard));
-        (i == 0 ? friendlyEval : opponentEval) += (
-        pieceType == Pawn ? (i == 0 ? pawnTableWhite : pawnTableBlack) :
-        pieceType == Knight ? (i == 0 ? knightTableWhite : knightTableBlack):
-        pieceType == Bishop ? (i == 0 ? bishopTableWhite : bishopTableBlack):
-        pieceType == Rook ? (i == 0 ? rookTableWhite : rookTableBlack): 
-        pieceType == Queen ? (i == 0 ? queenTableWhite : queenTableBlack):
-        (i == 0 ? kingTableWhite : kingTableBlack))[piecePosition];
+float smoothBlend(int pieceNumber) {
+  if (pieceNumber > 12) { return 1; }
+  else if (pieceNumber < 6)  { return 0; }
+  else {
+    float coefficient = (pieceNumber-6) / 6.0;
+    return (coefficient * coefficient) * (3 - (2 * coefficient));
+  }
+}
+
+float calculateDistance(int firstPosition, int secondPosition) {
+  int xDistance = (firstPosition % 8) - (secondPosition % 8);
+  int yDistance = (firstPosition / 8) - (secondPosition / 8);
+  return (float)sqrt((xDistance * xDistance) + (yDistance * yDistance));
+}
+
+int evaluateKing(uint64_t pieceBitboard[8], int square, int color, int eval) {
+  float blend = smoothBlend(std::bitset<64>(pieceBitboard[White] | pieceBitboard[Black]).count());
+  int evalScore = blend * (color == White ? kingTableWhite : kingTableBlack)[square];
+  evalScore += (1 - blend) * (color == White ? kingEndTableWhite : kingEndTableBlack)[square];
+  if (!blend && (color == White)) {
+    int distanceScore = nearKingBonus * (calculateDistance(square, __builtin_ctzll(pieceBitboard[King] & pieceBitboard[Black])) / 7.0);
+    if ((pieceBitboard[White] | pieceBitboard[Black]) & ~(pieceBitboard[Pawn] | pieceBitboard[King])) {
+      (eval > 0) ? (evalScore += distanceScore) : (evalScore -= distanceScore);
+    }
+  }
+  return evalScore;
+}
+
+int evaluateBoard(uint64_t pieceBitboard[8]){
+  int evalScore = 0;
+
+  for (int square=0; square<64; square++){
+    for (int pieceType=Pawn; pieceType<=King; pieceType++){
+      if (pieceBitboard[pieceType] & (1ul << square)){
+        for (int pieceColor=White; pieceColor<=Black; pieceColor+=Black){
+          if ((pieceBitboard[pieceType] & pieceBitboard[pieceColor]) & (1ul << square)){
+            switch (pieceType) {
+              case (Pawn):   
+                if (pieceColor == White) { evalScore += evaluatePawnStructure(pieceBitboard, square, White); }
+                else { evalScore -= evaluatePawnStructure(pieceBitboard, square, Black); } break;
+              case (Knight): evalScore += (pieceColor == White ? 1 : -1) * 
+              (pieceColor == White ? knightTableWhite : knightTableBlack)[square]; break;
+              case (Bishop): evalScore += (pieceColor == White ? 1 : -1) * 
+              (pieceColor == White ? bishopTableWhite : bishopTableBlack)[square]; break;
+              case (Rook): evalScore += (pieceColor == White ? 1 : -1) * 
+              (pieceColor == White ? rookTableWhite : rookTableBlack)[square]; break;
+              case (Queen): evalScore += (pieceColor == White ? 1 : -1) * 
+              (pieceColor == White ? queenTableWhite : queenTableBlack)[square]; break;
+              case (King):
+                if (pieceColor == White) { evalScore += evaluateKing(pieceBitboard, square, White, evalScore); }
+                else { evalScore -= evaluateKing(pieceBitboard, square, Black, evalScore); }
+            }
+            evalScore += (pieceValues[pieceType-1] * (pieceColor == White ? 1 : -1));
+          }
+        }
       }
     }
   }
 
-  return (friendlyEval - opponentEval);
+  return evalScore;
 }

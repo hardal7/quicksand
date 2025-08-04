@@ -1,14 +1,12 @@
-#ifndef EVALUATE_BOARD_H
-#define EVALUATE_BOARD_H
+#include <cstdint>
 
-#include <stdint.h>
+int evaluateBoard(uint64_t pieceBitboard[8]);
 
-const int pawnValue = 100;
-const int knightValue = 320;
-const int bishopValue = 330;
-const int rookValue = 500;
-const int queenValue = 900;
-const int kingValue = 20000;
+const int pieceValues[6] = {100, 350, 350, 525, 1000, 20000};
+const int isolatedPawnPenalty = -50;
+const int doublePawnPenalty = -50;
+const int passedPawnBonus = 50;
+const int nearKingBonus = 1000;
 
 const int pawnTableWhite[64] = {
   0,  0,  0,  0,  0,  0,  0,  0,
@@ -161,7 +159,3 @@ const int kingEndTableBlack[64] = {
   -30,-20,-10,  0,  0,-10,-20,-30,
   -50,-40,-30,-20,-20,-30,-40,-50
 };
-
-int evaluateBoard(uint64_t bitboards[8], char color);
-
-#endif

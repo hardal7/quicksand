@@ -1,8 +1,4 @@
-#ifndef ANNOTATE_MOVE_H
-#define ANNOTATE_MOVE_H
+#include <cstdint>
+#include <string>
 
-#include <stdint.h>
-
-void annotateMove(uint16_t move);
-
-#endif
+std::string annotateMove(uint16_t move);

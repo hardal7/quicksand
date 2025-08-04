@@ -1,11 +1,23 @@
-#ifndef ENUMS_H
-#define ENUMS_H
+#include <cstdint>
 
-#include <stdint.h>
+const int maxDepth = 3;
 
-enum Bitboard {
-  White = 0, Black = 1, Pawn = 2, Knight = 3,
-  Bishop = 4, Rook = 5, Queen = 6, King = 7, 
+enum Piece {
+  Pawn   = 1,
+  Knight = 2,
+  Bishop = 3,
+  Rook   = 4,
+  Queen  = 5,
+  King   = 6,
+
+  White  = 0,
+  Black  = 7,
+};
+
+enum MoveFlags {
+  Promotion = 1,
+  EnPassant = 2,
+  Castling  = 3,
 };
 
 const uint64_t fileAMask = 0x0101010101010101;
@@ -26,13 +38,17 @@ const uint64_t rankSixMask =   0x0000000000FF0000;
 const uint64_t rankSevenMask = 0x000000000000FF00;
 const uint64_t rankEightMask = 0x00000000000000FF;
 
-const uint64_t files[8] = {
+const uint64_t fileMasks[8] = {
   fileAMask, fileBMask, fileCMask, fileDMask,
   fileEMask, fileFMask, fileGMask, fileHMask
 };
-const uint64_t ranks[8] = {
-  rankOneMask, rankTwoMask, rankThreeMask, rankFourMask,
-  rankFiveMask, rankSixMask, rankSevenMask, rankEightMask
+
+const uint64_t rankMasks[8] = {
+  rankEightMask, rankSevenMask, rankSixMask, rankFiveMask,
+  rankFourMask,  rankThreeMask, rankTwoMask, rankOneMask
 };
 
-#endif
+const uint16_t kingSideCastleWhite  = (uint16_t)((0ul << 14) | (Castling << 12) | (60ul << 6) | (62));
+const uint16_t queenSideCastleWhite = (uint16_t)((0ul << 14) | (Castling << 12) | (60ul << 6) | (58));
+const uint16_t kingSideCastleBlack  = (uint16_t)((0ul << 14) | (Castling << 12) | (4ul << 6)  | (6));
+const uint16_t queenSideCastleBlack = (uint16_t)((0ul << 14) | (Castling << 12) | (4ul << 6)  | (2));

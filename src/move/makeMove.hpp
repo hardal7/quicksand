@@ -1,8 +1,3 @@
-#ifndef MAKE_MOVE_H
-#define MAKE_MOVE_H
+#include <cstdint>
 
-#include <stdint.h>
-
-void makeMove(uint64_t bitboards[8], uint16_t move, char color);
-
-#endif
+int makeMove(uint64_t pieceBitboard[8], uint16_t move, bool unmakeMove=0, int capturedPiece=0);
