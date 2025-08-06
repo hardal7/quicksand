@@ -1,7 +1,5 @@
 #include <cstdint>
 
-const int maxDepth = 3;
-
 enum Piece {
   Pawn   = 1,
   Knight = 2,
@@ -52,3 +50,5 @@ const uint16_t kingSideCastleWhite  = (uint16_t)((0ul << 14) | (Castling << 12) 
 const uint16_t queenSideCastleWhite = (uint16_t)((0ul << 14) | (Castling << 12) | (60ul << 6) | (58));
 const uint16_t kingSideCastleBlack  = (uint16_t)((0ul << 14) | (Castling << 12) | (4ul << 6)  | (6));
 const uint16_t queenSideCastleBlack = (uint16_t)((0ul << 14) | (Castling << 12) | (4ul << 6)  | (2));
+
+const int infinity = 100000;

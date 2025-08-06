@@ -185,7 +185,7 @@ void generateKingMoves(uint64_t pieceBitboard[8], int color, uint64_t piecePosit
   }
 }
 
-int generateMoves(uint64_t pieceBitboard[8], int color, uint16_t movesList[128]){
+int generateMoves(uint64_t pieceBitboard[8], int color, uint16_t movesList[256]){
   int movesNum = 0;
   for (int pieceType=Pawn; pieceType<=King; pieceType++) {
     uint64_t currentBitboard = (pieceBitboard[pieceType] & pieceBitboard[color]);

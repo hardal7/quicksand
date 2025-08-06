@@ -23,7 +23,8 @@ int startGame() {
   loadFEN(pieceBitboard);
   while(true) {
     getline(std::cin, input);
-    if (input == "quit") { return 0; }
+
+    if (input == "quit" || input == "q") { return 0; }
     else if (input == "isready") { std::cout << "readyok" << std::endl; }
     else if (input == "uci") { std::cout << "id name quicksand" << std::endl << "id author hardal" << std::endl << "uciok" << std::endl; }
 
@@ -53,9 +54,13 @@ int startGame() {
         visualizeBoard(pieceBitboard);
       }
       
-      uint16_t bestMove = searchBestMove(pieceBitboard, color, 3);
-
+      std::cout << std::endl << "==================================" << std::endl;
+      const int depth = 6;
+      uint16_t bestMove = searchBestMove(pieceBitboard, color, (depth-1), (depth-1), -infinity, infinity);
       std::cout << "bestmove " << annotateMove(bestMove) << std::endl;
+      std::cout << "Depth: " << depth << std::endl;
+      std::cout << "==================================" << std::endl;
+
       lastCommand += " " + annotateMove(bestMove);
       makeMove(pieceBitboard, bestMove);
       visualizeBoard(pieceBitboard);

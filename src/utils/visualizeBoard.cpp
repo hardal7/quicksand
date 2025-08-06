@@ -5,6 +5,7 @@
 #include "enums.hpp"
 
 void visualizeBoard(uint64_t pieceBitboard[8]){
+  std::cout << std::endl;
   for (int square=0; square<64; square++) {
     int piece = 0;
     for (int pieceType=Pawn; pieceType<=King; pieceType++) {
@@ -38,8 +39,8 @@ void visualizeBoard(uint64_t pieceBitboard[8]){
     
     std::cout << pieceString << " ";
     if (square%8 == 7) {
-      std::cout << "\n";
+      std::cout << std::endl;
     }
   }
-  std::cout << "\n";
+  std::cout << std::endl;
 }
