@@ -6,18 +6,12 @@
 #include "../utils/enums.hpp"
 
 float smoothBlend(int pieceNumber) {
-  if (pieceNumber > 12) { return 1; }
-  else if (pieceNumber < 6)  { return 0; }
+  if (pieceNumber > 16) { return 1; }
+  else if (pieceNumber < 10)  { return 0; }
   else {
     float coefficient = (pieceNumber-6) / 6.0;
     return (coefficient * coefficient) * (3 - (2 * coefficient));
   }
-}
-
-float calculateDistance(int firstPosition, int secondPosition) {
-  int xDistance = (firstPosition % 8) - (secondPosition % 8);
-  int yDistance = (firstPosition / 8) - (secondPosition / 8);
-  return (float)sqrt((xDistance * xDistance) + (yDistance * yDistance));
 }
 
 int evaluatePawnStructure(uint64_t pieceBitboard[8], int square, int pieceColor){
@@ -60,21 +54,18 @@ int evaluateBoard(uint64_t pieceBitboard[8]){
                 evalScore += (pieceColor == White ? 1 : -1) * ((gameState * (mgQueenTable[pieceColor == White ? (square) : (square ^ 56)]))
                 + ((1 - gameState) * egQueenTable[pieceColor == White ? (square) : (square ^ 56)])); break;
               case (King):
-                if (!gameState && (pieceColor == White)) {
-                  int distanceScore = nearKingWeight * (calculateDistance(square, __builtin_ctzll(pieceBitboard[King] & pieceBitboard[Black])) / 7.0);
-                  if ((pieceBitboard[White] | pieceBitboard[Black]) & ~(pieceBitboard[Pawn] | pieceBitboard[King])) {
-                    evalScore += distanceScore * ((evalScore > 0) ? 1 : -1);
-                  }
+                evalScore += (pieceColor == White ? 1 : -1) * ((gameState * (mgKingTable[pieceColor == White ? (square) : (square ^ 56)]))
+                + ((1 - gameState) * egKingTable[pieceColor == White ? (square) : (square ^ 56)])); break;
                 }
                 evalScore += (pieceColor == White ? 1 : -1) * ((gameState * (mgKingTable[pieceColor == White ? (square) : (square ^ 56)]))
                 + ((1 - gameState) * egKingTable[pieceColor == White ? (square) : (square ^ 56)])); break;
             }
-            evalScore += (pieceValues[pieceType-1] * (pieceColor == White ? 1 : -1));
+            evalScore +=  gameState * mgPieceValues[pieceType-1] * (pieceColor == White ? 1 : -1);
+            evalScore +=  (1 - gameState) * egPieceValues[pieceType-1] * (pieceColor == White ? 1 : -1);
           }
         }
       }
     }
-  }
 
   return evalScore;
 }

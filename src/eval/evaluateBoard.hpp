@@ -2,7 +2,8 @@
 
 int evaluateBoard(uint64_t pieceBitboard[8]);
 
-const int pieceValues[7] = {100, 350, 350, 525, 1000, 20000};
+const int mgPieceValues[6] = { 82, 337, 365, 477, 1025, 20000 };
+const int egPieceValues[6] = { 94, 281, 297, 512, 936, 20000 };
 const int isolatedPawnPenalty = -50;
 const int doublePawnPenalty = -50;
 const int passedPawnWeight = 50;
