@@ -7,7 +7,7 @@ uint16_t decodeMove(std::string moveString){
   uint16_t move = 0;
   int destinationSquare = 0, originSquare = 0, moveFlag = 0, promotionPiece = 0;
   int square = 0;
-
+  
   for(int i=0; i<(int)moveString.size(); i++){
     switch (moveString[i]) {
       case 'a': square+=0; break;
@@ -43,6 +43,6 @@ uint16_t decodeMove(std::string moveString){
   if(i==1) { square = 0; }
   else { destinationSquare = square; }
   }
-  move = ((destinationSquare) | (originSquare << 6) | (moveFlag << 12) | (promotionPiece << 14));
+  move = ((destinationSquare) | (originSquare << 6) | (moveFlag << 12) | ((promotionPiece + 2) << 14));
   return move;
 }

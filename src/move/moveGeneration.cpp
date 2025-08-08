@@ -1,7 +1,7 @@
 #include <cstdint>
 
 #include "../utils/enums.hpp"
-#include "../utils/annotateMove.hpp"
+#include "orderMoves.hpp"
 
 uint64_t returnPiece(uint64_t currentBitboard){
   return ((currentBitboard) & ~((currentBitboard)-1));
@@ -12,7 +12,7 @@ void createMove(
   uint16_t move = 0;
   move = (((uint16_t)__builtin_ctzll(destinationSquareBitboard)) | (((uint16_t)__builtin_ctzll(originSquareBitboard)) << 6)
   | (moveFlag << 12) | (promotionPiece << 14));
-  movesList[movesNum] = move;
+  movesList[movesNum+128] = move;
   movesNum++;
 }
 
@@ -207,5 +207,6 @@ int generateMoves(uint64_t pieceBitboard[8], int color, uint16_t movesList[256])
       }
     } while(currentPiece);
   }
+  orderMoves(pieceBitboard, movesList, movesNum);
   return movesNum;
 }

@@ -8,7 +8,6 @@
 #include "utils/decodeMove.hpp"
 #include "utils/visualizeBoard.hpp"
 #include "search/searchBestMove.hpp"
-#include "eval/evaluateBoard.hpp"
 #include "move/makeMove.hpp"
 #include "move/moveGeneration.hpp"
 

@@ -1,5 +1,4 @@
 #include <bitset>
-#include <cmath>
 #include <cstdint>
 
 #include "evaluateBoard.hpp"
@@ -56,12 +55,10 @@ int evaluateBoard(uint64_t pieceBitboard[8]){
               case (King):
                 evalScore += (pieceColor == White ? 1 : -1) * ((gameState * (mgKingTable[pieceColor == White ? (square) : (square ^ 56)]))
                 + ((1 - gameState) * egKingTable[pieceColor == White ? (square) : (square ^ 56)])); break;
-                }
-                evalScore += (pieceColor == White ? 1 : -1) * ((gameState * (mgKingTable[pieceColor == White ? (square) : (square ^ 56)]))
-                + ((1 - gameState) * egKingTable[pieceColor == White ? (square) : (square ^ 56)])); break;
+              }
+              evalScore +=  gameState * mgPieceValues[pieceType-1] * (pieceColor == White ? 1 : -1);
+              evalScore +=  (1 - gameState) * egPieceValues[pieceType-1] * (pieceColor == White ? 1 : -1);
             }
-            evalScore +=  gameState * mgPieceValues[pieceType-1] * (pieceColor == White ? 1 : -1);
-            evalScore +=  (1 - gameState) * egPieceValues[pieceType-1] * (pieceColor == White ? 1 : -1);
           }
         }
       }
