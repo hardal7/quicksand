@@ -65,7 +65,7 @@ void generateKnightMoves(const GameState &state, int square) {
                                   : state.bitboards[Bitboard::Indexes::Black];
 
   const std::array<int, 8> moves = {
-      Up * 2 + Left, Up * 2 + Right, Down * 2 - Left, Down * 2 + Right,
+      Up * 2 + Left, Up * 2 + Right, Down * 2 + Left, Down * 2 + Right,
       Up + Left * 2, Up + Right * 2, Down + Left * 2, Down + Right * 2,
   };
 
@@ -79,6 +79,36 @@ void generateKnightMoves(const GameState &state, int square) {
       {moves[5], fileAMask | fileBMask | rankOneMask},
       {moves[6], fileGMask | fileHMask | rankEightMask},
       {moves[7], fileGMask | fileHMask | rankOneMask},
+  };
+
+  for (int move : moves) {
+    bool occupiedByFriendly = friendlyBitboard & (1ul << (square + move));
+    uint64_t constraintMask = constraints.at(move);
+    bool moveConstrained = constraintMask & (1ul << square);
+    if (!occupiedByFriendly && !moveConstrained) {
+      createMove(square, square + move);
+    }
+  }
+}
+
+void generateKingMoves(const GameState &state, int square) {
+  uint64_t friendlyBitboard = state.whiteToPlay
+                                  ? state.bitboards[Bitboard::Indexes::White]
+                                  : state.bitboards[Bitboard::Indexes::Black];
+
+  const std::array<int, 8> moves = {
+      Up, Down, Left, Right, Up + Left, Up + Right, Down + Left, Down + Right};
+
+  const std::map<int, uint64_t> constraints = {
+      {moves[0], rankEightMask},
+      {moves[1], rankOneMask},
+      {moves[2], fileAMask},
+      {moves[3], fileHMask},
+
+      {moves[0], rankEightMask | fileAMask},
+      {moves[1], rankEightMask | fileHMask},
+      {moves[2], rankOneMask | fileAMask},
+      {moves[3], rankOneMask | fileHMask},
   };
 
   for (int move : moves) {
