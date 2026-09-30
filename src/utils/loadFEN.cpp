@@ -25,9 +25,9 @@ void fenToBitboards(GameState &state, std ::array<Piece, BOARD_SQUARES> board) {
   for (Piece piece : board) {
     if (piece.type != Piece::None) {
       if (piece.color == Piece::Black) {
-        state.bitboards[Bitboard::Indexes::White] += 1ul << square;
-      } else {
         state.bitboards[Bitboard::Indexes::Black] += 1ul << square;
+      } else {
+        state.bitboards[Bitboard::Indexes::White] += 1ul << square;
       }
       state.bitboards[piece.type] += 1ul << square;
     }

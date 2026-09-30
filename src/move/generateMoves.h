@@ -2,4 +2,4 @@
 
 #include "../../include/types.h"
 
-void generateMoves(GameState state);
+void generateMoves(const GameState &state);

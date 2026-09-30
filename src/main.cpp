@@ -1,16 +1,13 @@
 #include "../include/types.h"
+#include "move/generateMoves.h"
 #include "utils/loadFEN.h"
 #include "utils/printBoard.h"
-#include <bitset>
-#include <iostream>
 
 int main() {
   GameState state;
   loadFEN(state);
-  // for (auto bitboard : state.bitboards) {
-  // std::cout << std::bitset<64>(bitboard) << '\n';
-  // }
   printBoard(state);
+  generateMoves(state);
 
   return 0;
 }
