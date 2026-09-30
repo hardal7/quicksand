@@ -20,8 +20,7 @@ public:
   };
 };
 
-static void fenToBitboards(GameState &state,
-                           std ::array<Piece, BOARD_SQUARES> board) {
+void fenToBitboards(GameState &state, std ::array<Piece, BOARD_SQUARES> board) {
   int square = 0;
   for (Piece piece : board) {
     if (piece.type != Piece::None) {

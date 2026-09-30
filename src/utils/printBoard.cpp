@@ -14,7 +14,7 @@ void printBoard(GameState state) {
   std::string board = "";
 
   for (int square = 0; square < BOARD_SQUARES; square++) {
-    if (square % ROW_SQUARES == 0) {
+    if (square % RANK_SQUARES == 0) {
       board += "\n";
     }
 

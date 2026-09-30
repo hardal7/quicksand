@@ -7,9 +7,9 @@
 int main() {
   GameState state;
   loadFEN(state);
-  for (auto bitboard : state.bitboards) {
-    std::cout << std::bitset<64>(bitboard) << '\n';
-  }
+  // for (auto bitboard : state.bitboards) {
+  // std::cout << std::bitset<64>(bitboard) << '\n';
+  // }
   printBoard(state);
 
   return 0;
