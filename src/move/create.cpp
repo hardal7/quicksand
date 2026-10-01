@@ -1,30 +1,11 @@
 #include "../../include/enums.h"
 #include "../../include/types.h"
 #include "castle.h"
+#include "encode.h"
 #include <algorithm>
-#include <cstdint>
 #include <iostream>
 #include <optional>
 
-enum MoveEncodings {
-  OriginSquareOffset = 0,
-  DestinationSquareOffset = 6,
-  FlagOffset = 12,
-  PromotionPieceOffset = 14,
-
-  OriginSquareOffsetMask = 0x3F,
-  DestinationSquareOffsetMask = 0xFC0,
-  FlagOffsetMask = 0x3000,
-  PromotionPieceOffsetMask = 0xC00,
-
-  PromotionFlag = 1,
-  CastleFlag = 2,
-  EnPassantFlag = 3
-};
-
-using move = uint16_t;
-
-// TODO: Set En Passant Flag
 void createMove(int originSquare, int destinationSquare,
                 std::array<move, MAX_MOVES> &movesList,
                 std::optional<Board::Piece> promotionPiece = Board::None,
@@ -56,9 +37,6 @@ Board::Piece makeMove(GameState &state, move m) {
   Board::Bitboard *opponentPieces =
       &state.bitboards[state.whiteToPlay ? Board::Black : Board::White];
   Board::Piece capturedPiece = Board::None;
-
-  std::cout << "From: " << originSquare << " To: " << destinationSquare
-            << " Flag: " << flag << std::endl;
 
   *friendlyPieces ^= (1ul << originSquare);
   *friendlyPieces ^= (1ul << destinationSquare);
@@ -104,8 +82,6 @@ Board::Piece makeMove(GameState &state, move m) {
 
   bool isCapture = (1ul << destinationSquare) & *opponentPieces;
   if (isCapture) {
-    std::cout << "Is capture" << std::endl;
-
     for (Board::Piece piece = Board::Pawn; piece <= Board::King; piece++) {
       if ((1ul << destinationSquare) & state.bitboards[piece]) {
         capturedPiece = piece;
@@ -120,9 +96,14 @@ Board::Piece makeMove(GameState &state, move m) {
   for (Board::Piece piece = Board::Pawn; piece <= Board::King; piece++) {
     if ((1ul << originSquare) & state.bitboards[piece]) {
       movingPiece = piece;
-      std::cout << "Piece: " << movingPiece << std::endl;
       state.bitboards[movingPiece] ^= (1ul << originSquare);
       state.bitboards[movingPiece] ^= (1ul << destinationSquare);
+
+      if (movingPiece == Board::Pawn) {
+        state.enPassantSquare =
+            destinationSquare + (state.whiteToPlay ? Down : Up);
+      }
+
       break;
     }
   }

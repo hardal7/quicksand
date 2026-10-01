@@ -2,9 +2,9 @@
 
 #include "../../include/enums.h"
 #include "../../include/types.h"
+#include "encode.h"
 #include <optional>
 
-using move = uint16_t;
 void createMove(int OriginSquare, int destinationSquare,
                 std::array<move, MAX_MOVES> &movesList,
                 std::optional<Board::Piece> promotionPiece = Board::None,

@@ -3,6 +3,7 @@
 #include "castle.h"
 #include "create.h"
 #include <cstdint>
+#include <cstdlib>
 #include <optional>
 
 bool occupiedByFriendly(const GameState &state, int destinationSquare) {
@@ -91,19 +92,32 @@ void generateBishopMoves(const GameState &state,
   const std::array<int, 4> moves = {Up + Left, Up + Right, Down + Left,
                                     Down + Right};
 
+  int currentRank = RANK_SQUARES - (square / RANK_SQUARES);
+  int currentFile = square % RANK_SQUARES;
+
   for (int move : moves) {
-    for (int magnitude = 1; magnitude++;) {
+    for (int magnitude = 1; magnitude < RANK_SQUARES; magnitude++) {
       int destinationSquare = (square + move * magnitude);
+      int rank = RANK_SQUARES - (destinationSquare / RANK_SQUARES);
+      int file = destinationSquare % RANK_SQUARES;
+
       if (destinationSquare < 0 || destinationSquare > BOARD_SQUARES - 1) {
         break;
       }
-      if (!moveConstrained(square, move)) {
-        if (occupiedByOpponent(state, destinationSquare)) {
-          createMove(square, destinationSquare, movesList);
-          break;
-        } else if (!occupiedByFriendly(state, destinationSquare)) {
-          break;
-        }
+      bool isDiagonalMove =
+          std::abs(currentRank - rank) == std::abs(currentFile - file);
+
+      if (!isDiagonalMove) {
+        break;
+      }
+
+      if (occupiedByOpponent(state, destinationSquare)) {
+        createMove(square, destinationSquare, movesList);
+        break;
+      } else if (occupiedByFriendly(state, destinationSquare)) {
+        break;
+      } else {
+        createMove(square, destinationSquare, movesList);
       }
     }
   }
@@ -113,20 +127,30 @@ void generateRookMoves(const GameState &state,
                        std::array<move, MAX_MOVES> &movesList, int square) {
   const std::array<int, 4> moves = {Up, Down, Left, Right};
 
+  int currentRank = RANK_SQUARES - (square / RANK_SQUARES);
+  int currentFile = square % RANK_SQUARES;
+
   for (int move : moves) {
-    for (int magnitude = 1; magnitude++;) {
+    for (int magnitude = 1; magnitude < RANK_SQUARES; magnitude++) {
       int destinationSquare = (square + move * magnitude);
+      int rank = RANK_SQUARES - (destinationSquare / RANK_SQUARES);
+      int file = destinationSquare % RANK_SQUARES;
 
       if (destinationSquare < 0 || destinationSquare > BOARD_SQUARES - 1) {
         break;
       }
-      if (!moveConstrained(square, move)) {
-        if (occupiedByOpponent(state, destinationSquare)) {
-          createMove(square, destinationSquare, movesList);
-          break;
-        } else if (!occupiedByFriendly(state, destinationSquare)) {
-          break;
-        }
+      bool isStraightMove = (currentRank == rank) || (currentFile == file);
+      if (!isStraightMove) {
+        break;
+      }
+
+      if (occupiedByOpponent(state, destinationSquare)) {
+        createMove(square, destinationSquare, movesList);
+        break;
+      } else if (occupiedByFriendly(state, destinationSquare)) {
+        break;
+      } else {
+        createMove(square, destinationSquare, movesList);
       }
     }
   }
