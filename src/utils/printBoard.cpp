@@ -5,9 +5,9 @@
 #include <string>
 
 const std::map<int, char> pieceChars = {
-    {Bitboard::Indexes::Pawn, 'p'},   {Bitboard::Indexes::Knight, 'n'},
-    {Bitboard::Indexes::Bishop, 'b'}, {Bitboard::Indexes::Rook, 'r'},
-    {Bitboard::Indexes::Queen, 'q'},  {Bitboard::Indexes::King, 'k'},
+    {Board::Indexes::Pawn, 'p'},   {Board::Indexes::Knight, 'n'},
+    {Board::Indexes::Bishop, 'b'}, {Board::Indexes::Rook, 'r'},
+    {Board::Indexes::Queen, 'q'},  {Board::Indexes::King, 'k'},
 };
 
 void printBoard(GameState state) {
@@ -19,11 +19,11 @@ void printBoard(GameState state) {
     }
 
     bool foundPiece = false;
-    for (int piece = Bitboard::Indexes::Pawn; piece <= Bitboard::Indexes::King;
+    for (int piece = Board::Indexes::Pawn; piece <= Board::Indexes::King;
          piece++) {
       if (state.bitboards[piece] & (1ul << square)) {
         char pieceChar = pieceChars.at(piece);
-        if (state.bitboards[Bitboard::Indexes::White] & (1ul << square)) {
+        if (state.bitboards[Board::Indexes::White] & (1ul << square)) {
           pieceChar = std::toupper(pieceChar);
         }
 

@@ -3,13 +3,12 @@
 #include <array>
 #include <cstdint>
 
-const int BOARD_SQUARES = 64;
-const int RANK_SQUARES = 8;
+const int BOARD_SQUARES = 64, RANK_SQUARES = 8;
 
-class Bitboard {
+class Board {
 public:
-  static const int BITBOARDS_COUNT = 8;
-  enum Indexes {
+  using Piece = int;
+  enum Indexes : Piece {
     None = -1,
     Pawn,
     Knight,
@@ -20,14 +19,15 @@ public:
     White,
     Black
   };
-  using Bitboards = std::array<uint64_t, BITBOARDS_COUNT>;
+  using Bitboard = uint64_t;
+  using Bitboards = std::array<Bitboard, 8>;
 };
 
 struct GameState {
-  Bitboard::Bitboards bitboards = {0};
+  Board::Bitboards bitboards = {0};
   bool whiteToPlay = true;
 
   int enPassantSquare = 0;
-  bool canShortCastle = false;
-  bool canLongCastle = false;
+  bool canShortCastle = true;
+  bool canLongCastle = true;
 };
