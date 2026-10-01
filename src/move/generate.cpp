@@ -1,24 +1,25 @@
 #include "../../include/enums.h"
 #include "../../include/types.h"
-#include "createMove.h"
+#include "castle.h"
+#include "create.h"
 #include <cstdint>
 #include <optional>
 
 bool occupiedByFriendly(const GameState &state, int destinationSquare) {
   Board::Bitboard friendlyPieces = state.whiteToPlay
-                                       ? state.bitboards[Board::Indexes::White]
-                                       : state.bitboards[Board::Indexes::Black];
+                                       ? state.bitboards[Board::White]
+                                       : state.bitboards[Board::Black];
   return friendlyPieces & (1ul << destinationSquare);
 }
 bool occupiedByOpponent(const GameState &state, int destinationSquare) {
   Board::Bitboard opponentPieces = state.whiteToPlay
-                                       ? state.bitboards[Board::Indexes::Black]
-                                       : state.bitboards[Board::Indexes::White];
+                                       ? state.bitboards[Board::Black]
+                                       : state.bitboards[Board::White];
   return opponentPieces & (1ul << destinationSquare);
 }
 bool destinationIsEmpty(const GameState &state, int destinationSquare) {
-  Board::Bitboard allPieces = state.bitboards[Board::Indexes::White] |
-                              state.bitboards[Board::Indexes::Black];
+  Board::Bitboard allPieces =
+      state.bitboards[Board::White] | state.bitboards[Board::Black];
   return !(allPieces & 1ul << destinationSquare);
 }
 bool moveConstrained(int square, int move) {
@@ -29,8 +30,8 @@ bool moveConstrained(int square, int move) {
 void generatePawnMoves(const GameState &state,
                        std::array<move, MAX_MOVES> &movesList, int square) {
   Board::Bitboard opponentPieces = state.whiteToPlay
-                                       ? state.bitboards[Board::Indexes::Black]
-                                       : state.bitboards[Board::Indexes::White];
+                                       ? state.bitboards[Board::Black]
+                                       : state.bitboards[Board::White];
 
   int direction = state.whiteToPlay ? Forward : Backward;
   int destinationSquare = square + Down * direction;
@@ -38,8 +39,8 @@ void generatePawnMoves(const GameState &state,
     bool isPromotion =
         1ul << square & (state.whiteToPlay ? rankSevenMask : rankTwoMask);
     if (isPromotion) {
-      for (Board::Piece pieceType = Board::Indexes::Knight;
-           pieceType <= Board::Indexes::Queen; pieceType++) {
+      for (Board::Piece pieceType = Board::Knight; pieceType <= Board::Queen;
+           pieceType++) {
         createMove(square, square + Down * direction, movesList, pieceType);
       }
     } else {
@@ -149,30 +150,27 @@ void generateKingMoves(const GameState &state,
     }
   }
 
-  Board::Bitboard friendlyRank =
-      (state.whiteToPlay ? rankOneMask : rankEightMask);
-  Board::Bitboard longCastleMask =
-      fileBMask | fileCMask | fileDMask | friendlyRank;
-  Board::Bitboard shortCastleMask = fileFMask | fileGMask | friendlyRank;
-  Board::Bitboard longCastleRookPosition = fileAMask & friendlyRank;
-  Board::Bitboard shortCastleRookPosition = fileHMask & friendlyRank;
-  int castleKingSquare = fileE + (state.whiteToPlay ? rankOne : rankEight);
-  Board::Bitboard allPieces = state.bitboards[Board::Indexes::White] |
-                              state.bitboards[Board::Indexes::Black];
+  Board::Bitboard allPieces =
+      state.bitboards[Board::White] | state.bitboards[Board::Black];
   Board::Bitboard friendlyRooks =
-      state.bitboards[Board::Indexes::Rook] |
-      state.bitboards[state.whiteToPlay ? Board::Indexes::White
-                                        : Board::Indexes::Black];
+      state.bitboards[Board::Rook] |
+      state.bitboards[state.whiteToPlay ? Board::White : Board::Black];
 
   const int CASTLE_TYPES = 2;
   for (int i = 0; i < CASTLE_TYPES; i++) {
     bool castleFilesEmpty =
-        !(allPieces & (i ? shortCastleMask : longCastleMask));
+        !(allPieces & (i ? shortCastleMask(state.whiteToPlay)
+                         : longCastleMask(state.whiteToPlay)));
     bool castleRookExists =
-        friendlyRooks & (i ? shortCastleRookPosition : longCastleRookPosition);
-    if (square == castleKingSquare && castleFilesEmpty && castleRookExists &&
-        (i ? state.canShortCastle : state.canLongCastle)) {
-      createMove(square, castleKingSquare, movesList, std::nullopt, true);
+        friendlyRooks & (i ? shortCastleRookPosition(state.whiteToPlay)
+                           : longCastleRookPosition(state.whiteToPlay));
+    bool validCastlePosition = square == unmovedKingSquare(state.whiteToPlay) &&
+                               castleFilesEmpty && castleRookExists &&
+                               (i ? state.canShortCastle : state.canLongCastle);
+    if (validCastlePosition) {
+      int destinationSquare = i ? shortcastleKingSquare(state.whiteToPlay)
+                                : longcastleKingSquare(state.whiteToPlay);
+      createMove(square, destinationSquare, movesList, std::nullopt, true);
     }
   }
 }
@@ -180,31 +178,30 @@ void generateKingMoves(const GameState &state,
 void generateMoves(const GameState &state,
                    std::array<move, MAX_MOVES> &movesList) {
   Board::Bitboard friendlyPieces =
-      state.bitboards[state.whiteToPlay ? Board::Indexes::White
-                                        : Board::Indexes::Black];
-  for (Board::Piece pieceType = Board::Indexes::Pawn;
-       pieceType <= Board::Indexes::King; pieceType++) {
+      state.bitboards[state.whiteToPlay ? Board::White : Board::Black];
+  for (Board::Piece pieceType = Board::Pawn; pieceType <= Board::King;
+       pieceType++) {
     Board::Bitboard currentPiece = state.bitboards[pieceType] & friendlyPieces;
     while (currentPiece != 0) {
       int square = std::__countr_zero(currentPiece);
 
       switch (pieceType) {
-      case Board::Indexes::Pawn:
+      case Board::Pawn:
         generatePawnMoves(state, movesList, square);
         break;
-      case Board::Indexes::Knight:
+      case Board::Knight:
         generateKnightMoves(state, movesList, square);
         break;
-      case Board::Indexes::Bishop:
+      case Board::Bishop:
         generateBishopMoves(state, movesList, square);
         break;
-      case Board::Indexes::Rook:
+      case Board::Rook:
         generateRookMoves(state, movesList, square);
         break;
-      case Board::Indexes::Queen:
+      case Board::Queen:
         generateQueenMoves(state, movesList, square);
         break;
-      case Board::Indexes::King:
+      case Board::King:
         generateKingMoves(state, movesList, square);
         break;
       }
