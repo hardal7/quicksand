@@ -3,7 +3,6 @@
 #include "castle.h"
 #include "encode.h"
 #include <algorithm>
-#include <iostream>
 #include <optional>
 
 void createMove(int originSquare, int destinationSquare,
@@ -46,7 +45,7 @@ Board::Piece makeMove(GameState &state, move m) {
     state.bitboards[Board::Pawn] ^= (1ul << originSquare);
     state.bitboards[promotionPiece] ^= (1ul << destinationSquare);
 
-    return capturedPiece;
+    goto complete;
   }
   case CastleFlag: {
     state.bitboards[Board::King] ^= (1ul << originSquare);
@@ -65,7 +64,7 @@ Board::Piece makeMove(GameState &state, move m) {
     state.bitboards[Board::Rook] ^= (1ul << rookOriginSquare);
     state.bitboards[Board::Rook] ^= (1ul << rookDestinationSquare);
 
-    return capturedPiece;
+    goto complete;
   }
   case EnPassantFlag: {
     state.bitboards[Board::Pawn] ^= (1ul << originSquare);
@@ -76,50 +75,54 @@ Board::Piece makeMove(GameState &state, move m) {
     state.bitboards[Board::Pawn] ^= (1ul << capturedPawnSquare);
     *opponentPieces ^= (1ul << capturedPawnSquare);
 
-    return Board::Pawn;
+    goto complete;
   }
   }
+  {
+    bool isCapture = (1ul << destinationSquare) & *opponentPieces;
+    if (isCapture) {
+      for (Board::Piece piece = Board::Pawn; piece <= Board::King; piece++) {
+        if ((1ul << destinationSquare) & state.bitboards[piece]) {
+          capturedPiece = piece;
+          *opponentPieces ^= (1ul << destinationSquare);
+          state.bitboards[capturedPiece] ^= (1ul << destinationSquare);
+          break;
+        }
+      }
+    }
 
-  bool isCapture = (1ul << destinationSquare) & *opponentPieces;
-  if (isCapture) {
+    Board::Piece movingPiece = Board::None;
     for (Board::Piece piece = Board::Pawn; piece <= Board::King; piece++) {
-      if ((1ul << destinationSquare) & state.bitboards[piece]) {
-        capturedPiece = piece;
-        *opponentPieces ^= (1ul << destinationSquare);
-        state.bitboards[capturedPiece] ^= (1ul << destinationSquare);
+      if ((1ul << originSquare) & state.bitboards[piece]) {
+        movingPiece = piece;
+        state.bitboards[movingPiece] ^= (1ul << originSquare);
+        state.bitboards[movingPiece] ^= (1ul << destinationSquare);
+
+        if (movingPiece == Board::Pawn) {
+          state.enPassantSquare =
+              destinationSquare + (state.whiteToPlay ? Down : Up);
+        }
+
         break;
       }
     }
-  }
 
-  Board::Piece movingPiece = Board::None;
-  for (Board::Piece piece = Board::Pawn; piece <= Board::King; piece++) {
-    if ((1ul << originSquare) & state.bitboards[piece]) {
-      movingPiece = piece;
-      state.bitboards[movingPiece] ^= (1ul << originSquare);
-      state.bitboards[movingPiece] ^= (1ul << destinationSquare);
-
-      if (movingPiece == Board::Pawn) {
-        state.enPassantSquare =
-            destinationSquare + (state.whiteToPlay ? Down : Up);
+    if (movingPiece == Board::Rook) {
+      if (originSquare % 8 == fileH) {
+        state.canShortCastle = false;
+      } else if (originSquare % 8 == fileA) {
+        state.canLongCastle = false;
       }
-
-      break;
+    }
+    bool isDoubleMove = (destinationSquare - originSquare) ==
+                        (state.whiteToPlay ? Up : Down) * 2;
+    if ((movingPiece == Board::Pawn) && isDoubleMove) {
+      state.enPassantSquare =
+          destinationSquare + (state.whiteToPlay ? Down : Up);
     }
   }
 
-  if (movingPiece == Board::Rook) {
-    if (originSquare % 8 == fileH) {
-      state.canShortCastle = false;
-    } else if (originSquare % 8 == fileA) {
-      state.canLongCastle = false;
-    }
-  }
-  bool isDoubleMove =
-      (destinationSquare - originSquare) == (state.whiteToPlay ? Up : Down) * 2;
-  if ((movingPiece == Board::Pawn) && isDoubleMove) {
-    state.enPassantSquare = destinationSquare + (state.whiteToPlay ? Down : Up);
-  }
+complete:
   state.whiteToPlay = !state.whiteToPlay;
 
   return capturedPiece;

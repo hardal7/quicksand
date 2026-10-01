@@ -3,6 +3,7 @@
 #include "../../include/enums.h"
 #include "../../include/types.h"
 #include <optional>
+#include <string>
 
 using move = uint16_t;
 
@@ -21,3 +22,6 @@ enum MoveEncodings {
   CastleFlag = 2,
   EnPassantFlag = 3
 };
+
+std::string decodeMove(move m);
+move encodeMove(const GameState &state, std::string moveString);
