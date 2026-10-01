@@ -1,6 +1,6 @@
 #include "../../include/enums.h"
 #include "../../include/types.h"
-#include "createMoves.h"
+#include "createMove.h"
 #include <cstdint>
 #include <optional>
 
@@ -26,9 +26,8 @@ bool moveConstrained(int square, int move) {
   return constraintMask & (1ul << square);
 }
 
-void generatePawnMoves(const GameState &state, int square) {
-  Board::Bitboard allPieces = state.bitboards[Board::Indexes::White] |
-                              state.bitboards[Board::Indexes::Black];
+void generatePawnMoves(const GameState &state,
+                       std::array<move, MAX_MOVES> &movesList, int square) {
   Board::Bitboard opponentPieces = state.whiteToPlay
                                        ? state.bitboards[Board::Indexes::Black]
                                        : state.bitboards[Board::Indexes::White];
@@ -41,17 +40,17 @@ void generatePawnMoves(const GameState &state, int square) {
     if (isPromotion) {
       for (Board::Piece pieceType = Board::Indexes::Knight;
            pieceType <= Board::Indexes::Queen; pieceType++) {
-        createMove(square, square + Down * direction, pieceType);
+        createMove(square, square + Down * direction, movesList, pieceType);
       }
     } else {
-      createMove(square, square + Down * direction);
+      createMove(square, square + Down * direction, movesList);
     }
 
     destinationSquare = square + Down * 2 * direction;
     bool pawnNotMoved =
         1ul << square & (state.whiteToPlay ? rankTwoMask : rankSevenMask);
     if (destinationIsEmpty(state, destinationSquare) && pawnNotMoved) {
-      createMove(square, destinationSquare);
+      createMove(square, destinationSquare, movesList);
     }
   }
 
@@ -66,12 +65,13 @@ void generatePawnMoves(const GameState &state, int square) {
     bool moveConstrained = constraintMask & (1ul << square);
 
     if (occupiedByOpponent && !moveConstrained) {
-      createMove(square, destinationSquare);
+      createMove(square, destinationSquare, movesList);
     }
   }
 }
 
-void generateKnightMoves(const GameState &state, int square) {
+void generateKnightMoves(const GameState &state,
+                         std::array<move, MAX_MOVES> &movesList, int square) {
   const std::array<int, 8> moves = {
       Up * 2 + Left, Up * 2 + Right, Down * 2 + Left, Down * 2 + Right,
       Up + Left * 2, Up + Right * 2, Down + Left * 2, Down + Right * 2,
@@ -80,12 +80,13 @@ void generateKnightMoves(const GameState &state, int square) {
   for (int move : moves) {
     if (!occupiedByFriendly(state, square + move) &&
         !moveConstrained(square, move)) {
-      createMove(square, square + move);
+      createMove(square, square + move, movesList);
     }
   }
 }
 
-void generateBishopMoves(const GameState &state, int square) {
+void generateBishopMoves(const GameState &state,
+                         std::array<move, MAX_MOVES> &movesList, int square) {
   const std::array<int, 4> moves = {Up + Left, Up + Right, Down + Left,
                                     Down + Right};
 
@@ -97,17 +98,18 @@ void generateBishopMoves(const GameState &state, int square) {
       }
       if (!moveConstrained(square, move)) {
         if (occupiedByOpponent(state, destinationSquare)) {
-          createMove(square, destinationSquare);
+          createMove(square, destinationSquare, movesList);
           break;
         } else if (!occupiedByFriendly(state, destinationSquare)) {
-          createMove(square, destinationSquare);
+          break;
         }
       }
     }
   }
 }
 
-void generateRookMoves(const GameState &state, int square) {
+void generateRookMoves(const GameState &state,
+                       std::array<move, MAX_MOVES> &movesList, int square) {
   const std::array<int, 4> moves = {Up, Down, Left, Right};
 
   for (int move : moves) {
@@ -119,29 +121,31 @@ void generateRookMoves(const GameState &state, int square) {
       }
       if (!moveConstrained(square, move)) {
         if (occupiedByOpponent(state, destinationSquare)) {
-          createMove(square, destinationSquare);
+          createMove(square, destinationSquare, movesList);
           break;
         } else if (!occupiedByFriendly(state, destinationSquare)) {
-          createMove(square, destinationSquare);
+          break;
         }
       }
     }
   }
 }
 
-void generateQueenMoves(const GameState &state, int square) {
-  generateBishopMoves(state, square);
-  generateRookMoves(state, square);
+void generateQueenMoves(const GameState &state,
+                        std::array<move, MAX_MOVES> &movesList, int square) {
+  generateBishopMoves(state, movesList, square);
+  generateRookMoves(state, movesList, square);
 }
 
-void generateKingMoves(const GameState &state, int square) {
+void generateKingMoves(const GameState &state,
+                       std::array<move, MAX_MOVES> &movesList, int square) {
   const std::array<int, 8> moves = {
       Up, Down, Left, Right, Up + Left, Up + Right, Down + Left, Down + Right};
 
   for (int move : moves) {
     if (!occupiedByFriendly(state, square + move) &&
         !moveConstrained(square, move)) {
-      createMove(square, square + move);
+      createMove(square, square + move, movesList);
     }
   }
 
@@ -152,8 +156,7 @@ void generateKingMoves(const GameState &state, int square) {
   Board::Bitboard shortCastleMask = fileFMask | fileGMask | friendlyRank;
   Board::Bitboard longCastleRookPosition = fileAMask & friendlyRank;
   Board::Bitboard shortCastleRookPosition = fileHMask & friendlyRank;
-  Board::Bitboard castleKingSquare =
-      fileE + (state.whiteToPlay ? rankOne : rankEight);
+  int castleKingSquare = fileE + (state.whiteToPlay ? rankOne : rankEight);
   Board::Bitboard allPieces = state.bitboards[Board::Indexes::White] |
                               state.bitboards[Board::Indexes::Black];
   Board::Bitboard friendlyRooks =
@@ -169,12 +172,13 @@ void generateKingMoves(const GameState &state, int square) {
         friendlyRooks & (i ? shortCastleRookPosition : longCastleRookPosition);
     if (square == castleKingSquare && castleFilesEmpty && castleRookExists &&
         (i ? state.canShortCastle : state.canLongCastle)) {
-      createMove(square, castleKingSquare, std::nullopt, true);
+      createMove(square, castleKingSquare, movesList, std::nullopt, true);
     }
   }
 }
 
-void generateMoves(const GameState &state) {
+void generateMoves(const GameState &state,
+                   std::array<move, MAX_MOVES> &movesList) {
   Board::Bitboard friendlyPieces =
       state.bitboards[state.whiteToPlay ? Board::Indexes::White
                                         : Board::Indexes::Black];
@@ -186,22 +190,22 @@ void generateMoves(const GameState &state) {
 
       switch (pieceType) {
       case Board::Indexes::Pawn:
-        generatePawnMoves(state, square);
+        generatePawnMoves(state, movesList, square);
         break;
       case Board::Indexes::Knight:
-        generateKnightMoves(state, square);
+        generateKnightMoves(state, movesList, square);
         break;
       case Board::Indexes::Bishop:
-        generateBishopMoves(state, square);
+        generateBishopMoves(state, movesList, square);
         break;
       case Board::Indexes::Rook:
-        generateRookMoves(state, square);
+        generateRookMoves(state, movesList, square);
         break;
       case Board::Indexes::Queen:
-        generateQueenMoves(state, square);
+        generateQueenMoves(state, movesList, square);
         break;
       case Board::Indexes::King:
-        generateKingMoves(state, square);
+        generateKingMoves(state, movesList, square);
         break;
       }
       currentPiece ^= (1ul << square);

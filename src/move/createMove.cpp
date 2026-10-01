@@ -1,5 +1,6 @@
 #include "../../include/enums.h"
 #include "../../include/types.h"
+#include <algorithm>
 #include <cstdint>
 #include <optional>
 
@@ -16,12 +17,13 @@ enum MoveEncodings {
 
 using move = uint16_t;
 
-move createMove(
-    int OriginSquare, int destinationSquare,
+void createMove(
+    int originSquare, int destinationSquare,
+    std::array<move, MAX_MOVES> &movesList,
     std::optional<Board::Piece> promotionPiece = Board::Indexes::None,
     std::optional<bool> isCastle = false) {
   move m = 0;
-  m |= OriginSquare << OriginSquareOffset;
+  m |= originSquare << OriginSquareOffset;
   m |= destinationSquare << DestinationSquareOffset;
   if (promotionPiece != Board::Indexes::None) {
     m |= promotionPiece.value() << PromotionPieceOffset;
@@ -30,14 +32,15 @@ move createMove(
     m |= CastleFlag << FlagOffset;
   }
 
-  return m;
+  auto it = std::find(movesList.begin(), movesList.end(), 0);
+  *it = m;
 }
 
-void makeMove(GameState &state, move m) {
-  int originSquare = m << OriginSquareOffset;
-  int destinationSquare = m << DestinationSquareOffset;
-  Board::Piece promotionPiece = m << PromotionPieceOffset;
-  int flag = m << FlagOffset;
+Board::Piece makeMove(GameState &state, move m) {
+  int originSquare = m >> OriginSquareOffset;
+  int destinationSquare = m >> DestinationSquareOffset;
+  Board::Piece promotionPiece = m >> PromotionPieceOffset;
+  int flag = m >> FlagOffset;
 
   Board::Piece movingPiece = Board::Indexes::None;
   for (Board::Piece piece = Board::Indexes::Pawn; piece <= Board::Indexes::King;
@@ -49,13 +52,12 @@ void makeMove(GameState &state, move m) {
     }
   }
 
+  Board::Piece capturedPiece = Board::Indexes::None;
   Board::Bitboard *opponentPieces =
       &state.bitboards[state.whiteToPlay ? Board::Indexes::Black
                                          : Board::Indexes::White];
   bool isCapture = (1ul << destinationSquare) & *opponentPieces;
   if (isCapture) {
-    Board::Piece capturedPiece = Board::Indexes::None;
-
     for (Board::Piece piece = Board::Indexes::Pawn;
          piece <= Board::Indexes::King; piece++) {
       if ((1ul << destinationSquare) & state.bitboards[piece]) {
@@ -89,4 +91,6 @@ void makeMove(GameState &state, move m) {
     state.enPassantSquare = destinationSquare + (state.whiteToPlay ? Down : Up);
   }
   state.whiteToPlay = !state.whiteToPlay;
+
+  return capturedPiece;
 }

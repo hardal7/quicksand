@@ -3,6 +3,8 @@
 #include <cstdint>
 #include <map>
 
+const int MAX_MOVES = 256;
+
 enum Masks : uint64_t {
   fileAMask = 0x0101010101010101,
   fileBMask = 0x0202020202020202,
