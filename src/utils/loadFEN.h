@@ -1,7 +1,6 @@
 #pragma once
 
 #include "../../include/types.h"
-#include <cctype>
 #include <string>
 
 const std::string startingFEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR";

@@ -1,6 +1,5 @@
 #pragma once
 
-#include "../../include/enums.h"
 #include "../../include/types.h"
 
 int shortcastleKingSquare(bool whiteToPlay);

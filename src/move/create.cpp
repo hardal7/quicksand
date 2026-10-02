@@ -184,19 +184,19 @@ void unmakeMove(GameState &state, move m, Board::Piece capturedPiece) {
   }
   }
 
-  if (capturedPiece != Board::None) {
-    *opponentPieces ^= (1ul << destinationSquare);
-    state.bitboards[capturedPiece] ^= (1ul << destinationSquare);
-  }
-
   Board::Piece movingPiece = Board::None;
   for (Board::Piece piece = Board::Pawn; piece <= Board::King; piece++) {
     if ((1ul << destinationSquare) & state.bitboards[piece]) {
       movingPiece = piece;
-      state.bitboards[movingPiece] ^= (1ul << originSquare);
+      state.bitboards[movingPiece] |= (1ul << originSquare);
       state.bitboards[movingPiece] ^= (1ul << destinationSquare);
       break;
     }
+  }
+
+  if (capturedPiece != Board::None) {
+    *opponentPieces |= (1ul << destinationSquare);
+    state.bitboards[capturedPiece] |= (1ul << destinationSquare);
   }
 
   if (movingPiece == Board::Rook) {

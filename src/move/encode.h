@@ -1,8 +1,6 @@
 #pragma once
 
-#include "../../include/enums.h"
 #include "../../include/types.h"
-#include <optional>
 #include <string>
 
 using move = uint16_t;
