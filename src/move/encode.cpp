@@ -4,12 +4,12 @@
 #include <string>
 #include <utility>
 
-std::pair<int, char> ranks[8] = {
+const std::pair<int, char> ranks[8] = {
     {1, '8'}, {2, '7'}, {3, '6'}, {4, '5'},
     {5, '4'}, {6, '3'}, {7, '2'}, {8, '1'},
 };
 
-std::pair<int, char> files[8] = {
+const std::pair<int, char> files[8] = {
     {0, 'a'}, {1, 'b'}, {2, 'c'}, {3, 'd'},
     {4, 'e'}, {5, 'f'}, {6, 'g'}, {7, 'h'},
 };
@@ -17,14 +17,15 @@ std::pair<int, char> files[8] = {
 std::string squareToPosition(int square) {
   std::string position = "";
 
-  for (auto [val, c] : ranks) {
+  for (auto [val, c] : files) {
     if (val == square % RANK_SQUARES) {
       position += c;
       break;
     }
   }
-  for (auto [val, c] : files) {
-    if (val == RANK_SQUARES - square / RANK_SQUARES) {
+
+  for (auto [val, c] : ranks) {
+    if (val == (square / RANK_SQUARES) + 1) {
       position += c;
       break;
     }
@@ -33,7 +34,7 @@ std::string squareToPosition(int square) {
   return position;
 }
 
-const std::map<int, char> pieces = {
+const std::pair<int, char> pieces[4] = {
     {Board::Knight, 'n'},
     {Board::Bishop, 'b'},
     {Board::Rook, 'r'},
@@ -51,11 +52,16 @@ std::string decodeMove(move m) {
   std::string move = "";
 
   for (int i = 0; i < 2; i++) {
-    move += squareToPosition(i ? originSquare : destinationSquare);
+    move += squareToPosition(i ? destinationSquare : originSquare);
   }
 
   if (flag == PromotionFlag) {
-    move += pieces.at(promotionPiece);
+    for (auto [val, c] : files) {
+      if (val == promotionPiece) {
+        move += c;
+        break;
+      }
+    }
   }
 
   return move;
@@ -66,13 +72,13 @@ int positionToSquare(std::string position) {
 
   for (auto [val, c] : files) {
     if (c == position[0]) {
-      square += c;
+      square += val;
       break;
     }
   }
   for (auto [val, c] : ranks) {
-    if (c == position[2]) {
-      square += val * (RANK_SQUARES - 1);
+    if (c == position[1]) {
+      square += (val - 1) * RANK_SQUARES;
       break;
     }
   }
@@ -81,18 +87,20 @@ int positionToSquare(std::string position) {
 }
 
 move encodeMove(const GameState &state, std::string moveString) {
-  move m = 0;
-
   int originSquare = 0, destinationSquare = 0;
   for (int i = 0; i < 2; i++) {
-    i ? originSquare
-      : destinationSquare =
-            positionToSquare(moveString.substr(i ? 0 : 2, i ? 1 : 3));
+    (i ? originSquare : destinationSquare) =
+        positionToSquare(moveString.substr(i ? 0 : 2, i ? 2 : 3));
   }
 
   Board::Piece promotionPiece = Board::None;
   if (moveString.length() > 4) {
-    promotionPiece = pieces.at(promotionPiece);
+    for (auto [val, c] : files) {
+      if (c == moveString[4]) {
+        promotionPiece = val;
+        break;
+      }
+    }
   }
 
   bool isCastle =
@@ -100,6 +108,7 @@ move encodeMove(const GameState &state, std::string moveString) {
       (destinationSquare == shortcastleKingSquare(state.whiteToPlay) ||
        destinationSquare == longcastleKingSquare(state.whiteToPlay));
 
+  move m = 0;
   m |= originSquare << OriginSquareOffset;
   m |= destinationSquare << DestinationSquareOffset;
   if (promotionPiece != Board::None) {

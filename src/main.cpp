@@ -27,8 +27,17 @@ int search(GameState &state, int depth, int nodes = 0) {
 int main() {
   GameState state;
   loadFEN(state);
+  std::cout << decodeMove(encodeMove(state, "e2e4")) << std::endl;
+  std::cout << decodeMove(encodeMove(state, "b1b3")) << std::endl;
+
   // loadFEN(state, "r1bk3r/p2pBpNp/n4n2/1p1NP2P/6P1/3P4/P1P1K3/q5b1");
 
+  // std::cout << search(state, 1) << std::endl;
+
+  return 0;
+}
+
+void gameLoop(GameState &state) {
   while (true) {
     printBoard(state);
     std::cout << (state.whiteToPlay ? "White" : "Black") << " to play"
@@ -40,7 +49,7 @@ int main() {
       std::cin >> userMove;
 
       if (userMove == "q") {
-        return 0;
+        return;
       }
 
       makeMove(state, encodeMove(state, userMove));
@@ -51,8 +60,4 @@ int main() {
       std::cout << "Made move: " << decodeMove(moves[0]) << std::endl;
     }
   }
-
-  // std::cout << search(state, 1) << std::endl;
-
-  return 0;
 }
