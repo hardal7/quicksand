@@ -1,4 +1,5 @@
 #include "../include/types.h"
+#include "interface/uci.h"
 #include "move/create.h"
 #include "move/encode.h"
 #include "search/search.h"
@@ -43,6 +44,32 @@ int main() {
   // std::cout << "Evaluation: " << evaluateBoard(state) << std::endl;
   GameState state;
   loadFEN(state);
-  gameLoop(state);
+  // gameLoop(state);
+
+  bool firstCmd = true;
+
+  while (true) {
+    std::string cmd = handleUCI(firstCmd);
+    firstCmd = false;
+
+    if (cmd == "quit") {
+      return 0;
+    }
+
+    if (cmd != "") {
+      if (cmd != "position startpos") {
+        move m = encodeMove(state, cmd);
+        makeMove(state, m);
+      }
+
+      std::cout << "Thinking best move..." << std::endl;
+      const int DEPTH = 2;
+      int nodes = 0;
+      move bestMove = searchBestMove(state, DEPTH, DEPTH, nodes);
+      std::cout << cmd << std::endl;
+      std::cout << "bestmove " << decodeMove(bestMove) << std::endl;
+    }
+  }
+
   return 0;
 }
