@@ -205,9 +205,9 @@ void generateMoves(const GameState &state,
       state.bitboards[state.whiteToPlay ? Board::White : Board::Black];
   for (Board::Piece pieceType = Board::Pawn; pieceType <= Board::King;
        pieceType++) {
-    Board::Bitboard currentPiece = state.bitboards[pieceType] & friendlyPieces;
-    while (currentPiece != 0) {
-      int square = std::__countr_zero(currentPiece);
+    Board::Bitboard board = state.bitboards[pieceType] & friendlyPieces;
+    while (board) {
+      int square = std::__countr_zero(board);
 
       switch (pieceType) {
       case Board::Pawn:
@@ -229,7 +229,7 @@ void generateMoves(const GameState &state,
         generateKingMoves(state, movesList, square);
         break;
       }
-      currentPiece ^= (1ul << square);
+      board ^= (1ul << square);
     }
   }
 }

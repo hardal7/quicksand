@@ -3,7 +3,7 @@
 #include <array>
 #include <cstdint>
 
-const int BOARD_SQUARES = 64, RANK_SQUARES = 8;
+const int BOARD_SQUARES = 64, RANK_SQUARES = 8, PIECES = 8;
 
 class Board {
 public:
@@ -20,7 +20,7 @@ public:
     Black
   };
   using Bitboard = uint64_t;
-  using Bitboards = std::array<Bitboard, 8>;
+  using Bitboards = std::array<Bitboard, PIECES>;
 };
 
 struct GameState {
