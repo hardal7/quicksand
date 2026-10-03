@@ -3,6 +3,7 @@
 #include "../board/board.h"
 #include "encode.h"
 #include "enums.h"
+#include "order.h"
 
 enum SpecialMove { None = 0, Promotion = 1, Castle = 2, EnPassant = 3 };
 struct moveType {
@@ -11,7 +12,7 @@ struct moveType {
 };
 
 void createMove(int originSquare, int destinationSquare,
-                std::array<move, MAX_MOVES> &movesList,
+                std::array<ScoredMove, MAX_MOVES> &movesList,
                 moveType type = moveType{});
 
 Board::Piece makeMove(GameState &state, move m);

@@ -1,13 +1,13 @@
 #include "make.h"
 #include "../board/board.h"
-#include "../board/print.h"
 #include "castle.h"
 #include "encode.h"
 #include "enums.h"
+#include "order.h"
 #include <algorithm>
 
 void createMove(int originSquare, int destinationSquare,
-                std::array<move, MAX_MOVES> &movesList, moveType t) {
+                std::array<ScoredMove, MAX_MOVES> &movesList, moveType t) {
   move m = 0;
   m |= originSquare << OriginSquareOffset;
   m |= destinationSquare << DestinationSquareOffset;
@@ -21,8 +21,11 @@ void createMove(int originSquare, int destinationSquare,
     m |= EnPassantFlag << FlagOffset;
   }
 
-  auto it = std::find(movesList.begin(), movesList.end(), NO_MOVE);
-  *it = m;
+  auto it =
+      std::find_if(movesList.begin(), movesList.end(),
+                   [](const ScoredMove &m) { return m.value == NO_MOVE; });
+
+  *it = ScoredMove{m, 0};
 }
 
 Board::Piece makeMove(GameState &state, move m) {
@@ -32,11 +35,6 @@ Board::Piece makeMove(GameState &state, move m) {
   Board::Piece promotionPiece =
       (m & PromotionPieceOffsetMask) >> PromotionPieceOffset;
   int flag = (m & FlagOffsetMask) >> FlagOffset;
-
-  if (flag == PromotionFlag) {
-    printBitboards(state.bitboards);
-    printBoard(state);
-  }
 
   Board::Bitboard *friendlyPieces =
       &state.bitboards[state.whiteToPlay ? Board::White : Board::Black];
@@ -76,11 +74,6 @@ Board::Piece makeMove(GameState &state, move m) {
   case EnPassantFlag: {
     int enPassantCaptureSquare =
         destinationSquare + (state.whiteToPlay ? Down : Up);
-
-    int testVar = std::abs(destinationSquare - originSquare);
-    if (testVar != 7 && testVar != 9 && capturedPiece != Board::None) {
-      printBoard(state);
-    }
 
     *opponentPieces &= ~(1ul << enPassantCaptureSquare);
     state.bitboards[Board::Pawn] &= ~(1ul << enPassantCaptureSquare);

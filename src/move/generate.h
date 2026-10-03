@@ -3,6 +3,7 @@
 #include "../board/board.h"
 #include "encode.h"
 #include "enums.h"
+#include "order.h"
 
 void generateMoves(const GameState &state,
-                   std::array<move, MAX_MOVES> &movesList);
+                   std::array<ScoredMove, MAX_MOVES> &movesList);

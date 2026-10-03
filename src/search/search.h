@@ -2,4 +2,6 @@
 
 #include "../board/board.h"
 
-int searchBestMove(GameState &state, int depth, int rootDepth, int &nodes);
+const int INFINITY = 100000;
+int searchBestMove(GameState &state, int depth, int rootDepth, int &nodes,
+                   int alpha = -INFINITY, int beta = INFINITY);

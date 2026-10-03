@@ -1,6 +1,7 @@
 #include "../board/board.h"
 #include "castle.h"
 #include "make.h"
+#include "order.h"
 #include <cstdlib>
 
 bool occupiedByFriendly(const GameState &state, int destinationSquare) {
@@ -26,7 +27,8 @@ bool moveConstrained(int square, int move) {
 }
 
 void generatePawnMoves(const GameState &state,
-                       std::array<move, MAX_MOVES> &movesList, int square) {
+                       std::array<ScoredMove, MAX_MOVES> &movesList,
+                       int square) {
   Board::Bitboard opponentPieces = state.whiteToPlay
                                        ? state.bitboards[Board::Black]
                                        : state.bitboards[Board::White];
@@ -73,7 +75,8 @@ void generatePawnMoves(const GameState &state,
 }
 
 void generateKnightMoves(const GameState &state,
-                         std::array<move, MAX_MOVES> &movesList, int square) {
+                         std::array<ScoredMove, MAX_MOVES> &movesList,
+                         int square) {
   const std::array<int, 8> moves = {
       Up * 2 + Left, Up * 2 + Right, Down * 2 + Left, Down * 2 + Right,
       Up + Left * 2, Up + Right * 2, Down + Left * 2, Down + Right * 2,
@@ -88,7 +91,8 @@ void generateKnightMoves(const GameState &state,
 }
 
 void generateBishopMoves(const GameState &state,
-                         std::array<move, MAX_MOVES> &movesList, int square) {
+                         std::array<ScoredMove, MAX_MOVES> &movesList,
+                         int square) {
   const std::array<int, 4> moves = {Up + Left, Up + Right, Down + Left,
                                     Down + Right};
 
@@ -124,7 +128,8 @@ void generateBishopMoves(const GameState &state,
 }
 
 void generateRookMoves(const GameState &state,
-                       std::array<move, MAX_MOVES> &movesList, int square) {
+                       std::array<ScoredMove, MAX_MOVES> &movesList,
+                       int square) {
   const std::array<int, 4> moves = {Up, Down, Left, Right};
 
   int currentRank = RANK_SQUARES - (square / RANK_SQUARES);
@@ -157,13 +162,15 @@ void generateRookMoves(const GameState &state,
 }
 
 void generateQueenMoves(const GameState &state,
-                        std::array<move, MAX_MOVES> &movesList, int square) {
+                        std::array<ScoredMove, MAX_MOVES> &movesList,
+                        int square) {
   generateBishopMoves(state, movesList, square);
   generateRookMoves(state, movesList, square);
 }
 
 void generateKingMoves(const GameState &state,
-                       std::array<move, MAX_MOVES> &movesList, int square) {
+                       std::array<ScoredMove, MAX_MOVES> &movesList,
+                       int square) {
   const std::array<int, 8> moves = {
       Up, Down, Left, Right, Up + Left, Up + Right, Down + Left, Down + Right};
 
@@ -201,7 +208,7 @@ void generateKingMoves(const GameState &state,
 }
 
 void generateMoves(const GameState &state,
-                   std::array<move, MAX_MOVES> &movesList) {
+                   std::array<ScoredMove, MAX_MOVES> &movesList) {
   Board::Bitboard friendlyPieces =
       state.bitboards[state.whiteToPlay ? Board::White : Board::Black];
   for (Board::Piece pieceType = Board::Pawn; pieceType <= Board::King;

@@ -33,7 +33,7 @@ void gameLoop() {
       std::cerr << "Thinking best move for "
                 << (state.whiteToPlay ? "White" : "Black") << "..."
                 << std::endl;
-      const int DEPTH = 5;
+      const int DEPTH = 6;
       int nodes = 0;
       move bestMove = searchBestMove(state, DEPTH, DEPTH, nodes);
 
