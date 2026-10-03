@@ -23,3 +23,6 @@ clean:
 
 run: build
 	./$(EXEC)
+
+test:
+	cmake -S . -B build && cmake --build build && cd build && ctest
