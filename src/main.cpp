@@ -2,8 +2,8 @@
 #include "board/fen.h"
 #include "board/print.h"
 #include "interface/uci.h"
-#include "move/create.h"
 #include "move/encode.h"
+#include "move/make.h"
 #include "search/search.h"
 #include <iostream>
 
@@ -23,15 +23,17 @@ void gameLoop() {
     }
 
     if (c.cmd == Commands::UserMove) {
-      if (c.val != NO_MOVE) {
+      if (c.val != NO_MOVE_STR) {
         lastCmd += " " + c.val;
         move m = encodeMove(state, c.val);
         makeMove(state, m);
         printBoard(state);
       }
 
-      std::cerr << "Thinking best move..." << std::endl;
-      const int DEPTH = 4;
+      std::cerr << "Thinking best move for "
+                << (state.whiteToPlay ? "White" : "Black") << "..."
+                << std::endl;
+      const int DEPTH = 5;
       int nodes = 0;
       move bestMove = searchBestMove(state, DEPTH, DEPTH, nodes);
 
@@ -42,12 +44,13 @@ void gameLoop() {
       printBoard(state);
 
       lastCmd += " " + decodeMove(bestMove);
-      handleUCI(lastCmd, command{BestMove, decodeMove(bestMove)});
+      handleUCI(lastCmd, command{Commands::BestMove, decodeMove(bestMove)});
     }
   }
 }
 
 int main() {
   gameLoop();
+
   return 0;
 }

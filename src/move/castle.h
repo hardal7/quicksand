@@ -2,8 +2,10 @@
 
 #include "../board/board.h"
 
-int shortcastleKingSquare(bool whiteToPlay);
-int longcastleKingSquare(bool whiteToPlay);
+int shortCastleKingSquare(bool whiteToPlay);
+int shortCastleRookSquare(bool whiteToPlay);
+int longCastleKingSquare(bool whiteToPlay);
+int longCastleRookSquare(bool whiteToPlay);
 int unmovedKingSquare(bool whiteToPlay);
 
 Board::Bitboard shortCastleRookPosition(bool whiteToPlay);

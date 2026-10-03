@@ -3,7 +3,7 @@
 #include <cstdint>
 #include <map>
 
-const int MAX_MOVES = 256;
+const int MAX_MOVES = 256, NO_MOVE = 0;
 
 enum Masks : uint64_t {
   fileAMask = 0x0101010101010101,
@@ -72,7 +72,7 @@ const std::map<int, uint64_t> Constraints = {
     {Down * 2 + Right, rankOneMask | rankTwoMask | fileHMask},
 
     {Up + Left * 2, fileAMask | fileBMask | rankEightMask},
-    {Up + Right * 2, fileAMask | fileBMask | rankOneMask},
-    {Down + Left * 2, fileGMask | fileHMask | rankEightMask},
+    {Up + Right * 2, fileGMask | fileHMask | rankEightMask},
+    {Down + Left * 2, fileAMask | fileBMask | rankOneMask},
     {Down + Right * 2, fileGMask | fileHMask | rankOneMask},
 };

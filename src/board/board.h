@@ -28,6 +28,7 @@ struct GameState {
   bool whiteToPlay = true;
 
   int enPassantSquare = 0;
+  int enPassantSquarePrev = 0;
   bool canShortCastle = true;
   bool canLongCastle = true;
 };

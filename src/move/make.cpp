@@ -1,25 +1,27 @@
+#include "make.h"
 #include "../board/board.h"
+#include "../board/print.h"
 #include "castle.h"
 #include "encode.h"
 #include "enums.h"
 #include <algorithm>
-#include <optional>
 
 void createMove(int originSquare, int destinationSquare,
-                std::array<move, MAX_MOVES> &movesList,
-                std::optional<Board::Piece> promotionPiece = Board::None,
-                std::optional<bool> isCastle = false) {
+                std::array<move, MAX_MOVES> &movesList, moveType t) {
   move m = 0;
   m |= originSquare << OriginSquareOffset;
   m |= destinationSquare << DestinationSquareOffset;
-  if (promotionPiece != Board::None) {
-    m |= promotionPiece.value() << PromotionPieceOffset;
+
+  if (t.type == SpecialMove::Promotion) {
     m |= PromotionFlag << FlagOffset;
-  } else if (isCastle.value()) {
+    m |= t.promotionPiece << PromotionPieceOffset;
+  } else if (t.type == SpecialMove::Castle) {
     m |= CastleFlag << FlagOffset;
+  } else if (t.type == SpecialMove::EnPassant) {
+    m |= EnPassantFlag << FlagOffset;
   }
 
-  auto it = std::find(movesList.begin(), movesList.end(), 0);
+  auto it = std::find(movesList.begin(), movesList.end(), NO_MOVE);
   *it = m;
 }
 
@@ -30,6 +32,11 @@ Board::Piece makeMove(GameState &state, move m) {
   Board::Piece promotionPiece =
       (m & PromotionPieceOffsetMask) >> PromotionPieceOffset;
   int flag = (m & FlagOffsetMask) >> FlagOffset;
+
+  if (flag == PromotionFlag) {
+    printBitboards(state.bitboards);
+    printBoard(state);
+  }
 
   Board::Bitboard *friendlyPieces =
       &state.bitboards[state.whiteToPlay ? Board::White : Board::Black];
@@ -62,16 +69,24 @@ Board::Piece makeMove(GameState &state, move m) {
   state.bitboards[movedPiece] |= (1ul << destinationSquare);
 
   switch (flag) {
-  case PromotionFlag:
+  case PromotionFlag: {
     state.bitboards[Board::Pawn] &= ~(1ul << destinationSquare);
     state.bitboards[promotionPiece] |= (1ul << destinationSquare);
+  } break;
   case EnPassantFlag: {
     int enPassantCaptureSquare =
-        destinationSquare + (state.whiteToPlay ? Up : Down);
+        destinationSquare + (state.whiteToPlay ? Down : Up);
+
+    int testVar = std::abs(destinationSquare - originSquare);
+    if (testVar != 7 && testVar != 9 && capturedPiece != Board::None) {
+      printBoard(state);
+    }
+
     *opponentPieces &= ~(1ul << enPassantCaptureSquare);
     state.bitboards[Board::Pawn] &= ~(1ul << enPassantCaptureSquare);
+
     capturedPiece = Board::Pawn;
-  }
+  } break;
   case CastleFlag: {
     bool isShortCastle = true;
     if (destinationSquare - originSquare == Left * 3) {
@@ -79,10 +94,10 @@ Board::Piece makeMove(GameState &state, move m) {
     }
 
     int rookOriginSquare =
-        (isShortCastle ? shortCastleRookPosition(state.whiteToPlay)
-                       : longCastleRookPosition(state.whiteToPlay));
+        (isShortCastle ? shortCastleRookSquare(state.whiteToPlay)
+                       : longCastleRookSquare(state.whiteToPlay));
     int rookDestinationSquare =
-        rookOriginSquare + (isShortCastle ? (Right * 2) : (Left * 3));
+        rookOriginSquare + (isShortCastle ? (Left * 2) : (Right * 3));
 
     state.bitboards[Board::Rook] &= ~(1ul << rookOriginSquare);
     state.bitboards[Board::Rook] |= (1ul << rookDestinationSquare);
@@ -91,7 +106,7 @@ Board::Piece makeMove(GameState &state, move m) {
 
     state.canLongCastle = false;
     state.canShortCastle = false;
-  }
+  } break;
   }
 
   if (movedPiece == Board::Rook) {
@@ -102,6 +117,7 @@ Board::Piece makeMove(GameState &state, move m) {
     }
   }
 
+  state.enPassantSquarePrev = state.enPassantSquare;
   bool isDoubleMove =
       (destinationSquare - originSquare) == (state.whiteToPlay ? Up : Down) * 2;
   if ((movedPiece == Board::Pawn) && isDoubleMove) {
@@ -142,21 +158,22 @@ void unmakeMove(GameState &state, move m, Board::Piece capturedPiece) {
   state.bitboards[movedPiece] &= ~(1ul << destinationSquare);
   state.bitboards[movedPiece] |= (1ul << originSquare);
 
-  if (capturedPiece != Board::None) {
+  if (capturedPiece != Board::None && flag != EnPassantFlag) {
     *opponentPieces |= (1ul << destinationSquare);
     state.bitboards[capturedPiece] |= (1ul << destinationSquare);
   }
 
   switch (flag) {
-  case PromotionFlag:
+  case PromotionFlag: {
     state.bitboards[promotionPiece] &= ~(1ul << originSquare);
     state.bitboards[Board::Pawn] |= (1ul << originSquare);
+  } break;
   case EnPassantFlag: {
     int enPassantCaptureSquare =
-        destinationSquare + (state.whiteToPlay ? Up : Down);
+        destinationSquare + (state.whiteToPlay ? Down : Up);
     *opponentPieces |= (1ul << enPassantCaptureSquare);
     state.bitboards[Board::Pawn] |= (1ul << enPassantCaptureSquare);
-  }
+  } break;
   case CastleFlag: {
     bool isShortCastle = true;
     if (destinationSquare - originSquare == Left * 3) {
@@ -164,10 +181,10 @@ void unmakeMove(GameState &state, move m, Board::Piece capturedPiece) {
     }
 
     int rookOriginSquare =
-        (isShortCastle ? shortCastleRookPosition(state.whiteToPlay)
-                       : longCastleRookPosition(state.whiteToPlay));
+        (isShortCastle ? shortCastleRookSquare(state.whiteToPlay)
+                       : longCastleRookSquare(state.whiteToPlay));
     int rookDestinationSquare =
-        rookOriginSquare + (isShortCastle ? (Right * 2) : (Left * 3));
+        rookOriginSquare + (isShortCastle ? (Left * 2) : (Right * 3));
 
     state.bitboards[Board::Rook] &= ~(1ul << rookDestinationSquare);
     state.bitboards[Board::Rook] |= (1ul << rookOriginSquare);
@@ -176,7 +193,7 @@ void unmakeMove(GameState &state, move m, Board::Piece capturedPiece) {
 
     state.canLongCastle = true;
     state.canShortCastle = true;
-  }
+  } break;
   }
 
   if (movedPiece == Board::Rook) {
@@ -187,11 +204,5 @@ void unmakeMove(GameState &state, move m, Board::Piece capturedPiece) {
     }
   }
 
-  bool isDoubleMove =
-      (destinationSquare - originSquare) == (state.whiteToPlay ? Up : Down) * 2;
-  if ((movedPiece == Board::Pawn) && isDoubleMove) {
-    state.enPassantSquare = destinationSquare + (state.whiteToPlay ? Down : Up);
-  } else {
-    state.enPassantSquare = 0;
-  }
+  state.enPassantSquare = state.enPassantSquarePrev;
 }

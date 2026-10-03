@@ -1,11 +1,17 @@
 #include "../board/board.h"
 #include "enums.h"
 
-int shortcastleKingSquare(bool whiteToPlay) {
+int shortCastleKingSquare(bool whiteToPlay) {
   return fileB + (whiteToPlay ? rankOne : rankEight);
 }
-int longcastleKingSquare(bool whiteToPlay) {
+int longCastleKingSquare(bool whiteToPlay) {
   return fileG + (whiteToPlay ? rankOne : rankEight);
+}
+int shortCastleRookSquare(bool whiteToPlay) {
+  return fileH + (whiteToPlay ? rankOne : rankEight);
+}
+int longCastleRookSquare(bool whiteToPlay) {
+  return fileA + (whiteToPlay ? rankOne : rankEight);
 }
 int unmovedKingSquare(bool whiteToPlay) {
   return fileE + (whiteToPlay ? rankOne : rankEight);

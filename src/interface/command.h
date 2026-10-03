@@ -2,6 +2,7 @@
 
 #include <string>
 
+namespace Commands {
 enum Commands {
   None = 0,
   Quit = 1,
@@ -9,10 +10,11 @@ enum Commands {
   BestMove = 3,
   UserMove = 4,
 };
+}
 
-const std::string NO_MOVE = "NOMOVE";
+const std::string NO_MOVE_STR = "NOMOVE";
 
 struct command {
-  Commands cmd;
+  Commands::Commands cmd;
   std::string val;
 };

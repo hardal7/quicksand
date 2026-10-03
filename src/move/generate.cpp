@@ -1,9 +1,7 @@
 #include "../board/board.h"
 #include "castle.h"
-#include "create.h"
-#include <cstdint>
+#include "make.h"
 #include <cstdlib>
-#include <optional>
 
 bool occupiedByFriendly(const GameState &state, int destinationSquare) {
   Board::Bitboard friendlyPieces = state.whiteToPlay
@@ -37,11 +35,12 @@ void generatePawnMoves(const GameState &state,
   int destinationSquare = square + Down * direction;
   if (destinationIsEmpty(state, destinationSquare)) {
     bool isPromotion =
-        1ul << square & (state.whiteToPlay ? rankSevenMask : rankTwoMask);
+        (1ul << square) & (state.whiteToPlay ? rankSevenMask : rankTwoMask);
     if (isPromotion) {
       for (Board::Piece pieceType = Board::Knight; pieceType <= Board::Queen;
            pieceType++) {
-        createMove(square, square + Down * direction, movesList, pieceType);
+        createMove(square, square + Down * direction, movesList,
+                   moveType{SpecialMove::Promotion, pieceType});
       }
     } else {
       createMove(square, square + Down * direction, movesList);
@@ -62,11 +61,13 @@ void generatePawnMoves(const GameState &state,
         (opponentPieces | (1ul << state.enPassantSquare)) &
         1ul << destinationSquare;
 
-    uint64_t constraintMask = Constraints.at(move);
-    bool moveConstrained = constraintMask & (1ul << square);
-
-    if (occupiedByOpponent && !moveConstrained) {
-      createMove(square, destinationSquare, movesList);
+    if (occupiedByOpponent && !moveConstrained(square, move)) {
+      if (state.enPassantSquare == destinationSquare) {
+        createMove(square, destinationSquare, movesList,
+                   moveType{SpecialMove::EnPassant});
+      } else {
+        createMove(square, destinationSquare, movesList);
+      }
     }
   }
 }
@@ -191,9 +192,10 @@ void generateKingMoves(const GameState &state,
                                castleFilesEmpty && castleRookExists &&
                                (i ? state.canShortCastle : state.canLongCastle);
     if (validCastlePosition) {
-      int destinationSquare = i ? shortcastleKingSquare(state.whiteToPlay)
-                                : longcastleKingSquare(state.whiteToPlay);
-      createMove(square, destinationSquare, movesList, std::nullopt, true);
+      int destinationSquare = i ? shortCastleKingSquare(state.whiteToPlay)
+                                : longCastleKingSquare(state.whiteToPlay);
+      createMove(square, destinationSquare, movesList,
+                 moveType{SpecialMove::Castle});
     }
   }
 }

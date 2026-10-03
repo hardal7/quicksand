@@ -2,6 +2,7 @@
 #include <iostream>
 #include <string>
 
+using namespace Commands;
 const std::string ENGINE_NAME = "quicksand", AUTHOR_NAME = "hardal";
 
 command handleUCI(std::string lastCmd, command c = command{None}) {
@@ -32,7 +33,7 @@ command handleUCI(std::string lastCmd, command c = command{None}) {
       size_t pos = userCmd.find_last_of(' ');
       move = userCmd.substr(pos + 1);
     } else {
-      move = NO_MOVE;
+      move = NO_MOVE_STR;
     }
     return command{UserMove, move};
   }

@@ -1,6 +1,7 @@
 #include "encode.h"
 #include "../board/board.h"
 #include "castle.h"
+#include "enums.h"
 #include <string>
 #include <utility>
 
@@ -105,8 +106,17 @@ move encodeMove(const GameState &state, std::string moveString) {
 
   bool isCastle =
       originSquare == unmovedKingSquare(state.whiteToPlay) &&
-      (destinationSquare == shortcastleKingSquare(state.whiteToPlay) ||
-       destinationSquare == longcastleKingSquare(state.whiteToPlay));
+      (destinationSquare == shortCastleKingSquare(state.whiteToPlay) ||
+       destinationSquare == longCastleKingSquare(state.whiteToPlay));
+
+  int pieceMove = std::abs(destinationSquare - originSquare);
+  bool notCapturing =
+      !((state.bitboards[Board::White] | state.bitboards[Board::Black]) &
+        (1ul << destinationSquare));
+  bool isEnPassant =
+      ((1ul << originSquare) & state.bitboards[Board::Pawn]) &&
+      (pieceMove == (Down + Right) || pieceMove == (Down + Left)) &&
+      notCapturing;
 
   move m = 0;
   m |= originSquare << OriginSquareOffset;
@@ -116,6 +126,8 @@ move encodeMove(const GameState &state, std::string moveString) {
     m |= PromotionFlag << FlagOffset;
   } else if (isCastle) {
     m |= CastleFlag << FlagOffset;
+  } else if (isEnPassant) {
+    m |= EnPassantFlag << FlagOffset;
   }
 
   return m;
