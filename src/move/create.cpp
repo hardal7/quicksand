@@ -35,94 +35,81 @@ Board::Piece makeMove(GameState &state, move m) {
       &state.bitboards[state.whiteToPlay ? Board::White : Board::Black];
   Board::Bitboard *opponentPieces =
       &state.bitboards[state.whiteToPlay ? Board::Black : Board::White];
-  Board::Piece capturedPiece = Board::None;
 
-  *friendlyPieces ^= (1ul << originSquare);
-  *friendlyPieces ^= (1ul << destinationSquare);
+  Board::Piece capturedPiece = Board::None;
+  if (*opponentPieces & (1ul << destinationSquare)) {
+    for (Board::Piece piece = Board::Pawn; piece <= Board::King; piece++) {
+      if (*opponentPieces & state.bitboards[piece] &
+          (1ul << destinationSquare)) {
+        capturedPiece = piece;
+
+        *opponentPieces &= ~(1ul << destinationSquare);
+        state.bitboards[capturedPiece] &= ~(1ul << destinationSquare);
+      }
+    }
+  }
+
+  Board::Piece movedPiece = Board::None;
+  for (Board::Piece piece = Board::Pawn; piece <= Board::King; piece++) {
+    if (*friendlyPieces & state.bitboards[piece] & (1ul << originSquare)) {
+      movedPiece = piece;
+    }
+  }
+
+  *friendlyPieces &= ~(1ul << originSquare);
+  *friendlyPieces |= (1ul << destinationSquare);
+  state.bitboards[movedPiece] &= ~(1ul << originSquare);
+  state.bitboards[movedPiece] |= (1ul << destinationSquare);
 
   switch (flag) {
-  case PromotionFlag: {
-    state.bitboards[Board::Pawn] ^= (1ul << originSquare);
-    state.bitboards[promotionPiece] ^= (1ul << destinationSquare);
-
-    goto complete;
+  case PromotionFlag:
+    state.bitboards[Board::Pawn] &= ~(1ul << destinationSquare);
+    state.bitboards[promotionPiece] |= (1ul << destinationSquare);
+  case EnPassantFlag: {
+    int enPassantCaptureSquare =
+        destinationSquare + (state.whiteToPlay ? Up : Down);
+    *opponentPieces &= ~(1ul << enPassantCaptureSquare);
+    state.bitboards[Board::Pawn] &= ~(1ul << enPassantCaptureSquare);
+    capturedPiece = Board::Pawn;
   }
   case CastleFlag: {
-    state.bitboards[Board::King] ^= (1ul << originSquare);
-    state.bitboards[Board::King] ^= (1ul << destinationSquare);
-
     bool isShortCastle = true;
     if (destinationSquare - originSquare == Left * 3) {
       isShortCastle = false;
     }
 
-    int rookOriginSquare = shortCastleRookPosition(state.whiteToPlay);
+    int rookOriginSquare =
+        (isShortCastle ? shortCastleRookPosition(state.whiteToPlay)
+                       : longCastleRookPosition(state.whiteToPlay));
     int rookDestinationSquare =
-        rookOriginSquare + (isShortCastle ? Right * 2 : Left * 3);
-    *friendlyPieces ^= (1ul << rookOriginSquare);
-    *friendlyPieces ^= (1ul << rookDestinationSquare);
-    state.bitboards[Board::Rook] ^= (1ul << rookOriginSquare);
-    state.bitboards[Board::Rook] ^= (1ul << rookDestinationSquare);
+        rookOriginSquare + (isShortCastle ? (Right * 2) : (Left * 3));
 
-    goto complete;
-  }
-  case EnPassantFlag: {
-    state.bitboards[Board::Pawn] ^= (1ul << originSquare);
-    state.bitboards[Board::Pawn] ^= (1ul << destinationSquare);
+    state.bitboards[Board::Rook] &= ~(1ul << rookOriginSquare);
+    state.bitboards[Board::Rook] |= (1ul << rookDestinationSquare);
+    *friendlyPieces &= ~(1ul << rookOriginSquare);
+    *friendlyPieces |= (1ul << rookDestinationSquare);
 
-    int capturedPawnSquare =
-        destinationSquare + (state.whiteToPlay ? Down : Up);
-    state.bitboards[Board::Pawn] ^= (1ul << capturedPawnSquare);
-    *opponentPieces ^= (1ul << capturedPawnSquare);
-
-    goto complete;
+    state.canLongCastle = false;
+    state.canShortCastle = false;
   }
   }
-  {
-    bool isCapture = (1ul << destinationSquare) & *opponentPieces;
-    if (isCapture) {
-      for (Board::Piece piece = Board::Pawn; piece <= Board::King; piece++) {
-        if ((1ul << destinationSquare) & state.bitboards[piece]) {
-          capturedPiece = piece;
-          *opponentPieces ^= (1ul << destinationSquare);
-          state.bitboards[capturedPiece] ^= (1ul << destinationSquare);
-          break;
-        }
-      }
-    }
 
-    Board::Piece movingPiece = Board::None;
-    for (Board::Piece piece = Board::Pawn; piece <= Board::King; piece++) {
-      if ((1ul << originSquare) & state.bitboards[piece]) {
-        movingPiece = piece;
-        state.bitboards[movingPiece] ^= (1ul << originSquare);
-        state.bitboards[movingPiece] ^= (1ul << destinationSquare);
-
-        if (movingPiece == Board::Pawn) {
-          state.enPassantSquare =
-              destinationSquare + (state.whiteToPlay ? Down : Up);
-        }
-
-        break;
-      }
-    }
-
-    if (movingPiece == Board::Rook) {
-      if (originSquare % 8 == fileH) {
-        state.canShortCastle = false;
-      } else if (originSquare % 8 == fileA) {
-        state.canLongCastle = false;
-      }
-    }
-    bool isDoubleMove = (destinationSquare - originSquare) ==
-                        (state.whiteToPlay ? Up : Down) * 2;
-    if ((movingPiece == Board::Pawn) && isDoubleMove) {
-      state.enPassantSquare =
-          destinationSquare + (state.whiteToPlay ? Down : Up);
+  if (movedPiece == Board::Rook) {
+    if (originSquare % 8 == fileH) {
+      state.canShortCastle = false;
+    } else if (originSquare % 8 == fileA) {
+      state.canLongCastle = false;
     }
   }
 
-complete:
+  bool isDoubleMove =
+      (destinationSquare - originSquare) == (state.whiteToPlay ? Up : Down) * 2;
+  if ((movedPiece == Board::Pawn) && isDoubleMove) {
+    state.enPassantSquare = destinationSquare + (state.whiteToPlay ? Down : Up);
+  } else {
+    state.enPassantSquare = 0;
+  }
+
   state.whiteToPlay = !state.whiteToPlay;
 
   return capturedPiece;
@@ -143,68 +130,68 @@ void unmakeMove(GameState &state, move m, Board::Piece capturedPiece) {
   Board::Bitboard *opponentPieces =
       &state.bitboards[state.whiteToPlay ? Board::Black : Board::White];
 
-  *friendlyPieces ^= (1ul << originSquare);
-  *friendlyPieces ^= (1ul << destinationSquare);
-
-  switch (flag) {
-  case PromotionFlag: {
-    state.bitboards[Board::Pawn] ^= (1ul << originSquare);
-    state.bitboards[promotionPiece] ^= (1ul << destinationSquare);
-    return;
-  }
-  case CastleFlag: {
-    state.bitboards[Board::King] ^= (1ul << originSquare);
-    state.bitboards[Board::King] ^= (1ul << destinationSquare);
-
-    bool isShortCastle = true;
-    if (destinationSquare - originSquare == Left * 3) {
-      isShortCastle = false;
-    }
-
-    int rookOriginSquare = shortCastleRookPosition(state.whiteToPlay);
-    int rookDestinationSquare =
-        rookOriginSquare + (isShortCastle ? Right * 2 : Left * 3);
-    *friendlyPieces ^= (1ul << rookOriginSquare);
-    *friendlyPieces ^= (1ul << rookDestinationSquare);
-    state.bitboards[Board::Rook] ^= (1ul << rookOriginSquare);
-    state.bitboards[Board::Rook] ^= (1ul << rookDestinationSquare);
-
-    return;
-  }
-  case EnPassantFlag: {
-    state.bitboards[Board::Pawn] ^= (1ul << originSquare);
-    state.bitboards[Board::Pawn] ^= (1ul << destinationSquare);
-
-    int capturedPawnSquare =
-        destinationSquare + (state.whiteToPlay ? Down : Up);
-    state.bitboards[Board::Pawn] ^= (1ul << capturedPawnSquare);
-    *opponentPieces ^= (1ul << capturedPawnSquare);
-
-    return;
-  }
-  }
-
-  Board::Piece movingPiece = Board::None;
+  Board::Piece movedPiece = Board::None;
   for (Board::Piece piece = Board::Pawn; piece <= Board::King; piece++) {
-    if ((1ul << destinationSquare) & state.bitboards[piece]) {
-      movingPiece = piece;
-      state.bitboards[movingPiece] |= (1ul << originSquare);
-      state.bitboards[movingPiece] ^= (1ul << destinationSquare);
-      break;
+    if (*friendlyPieces & state.bitboards[piece] & (1ul << destinationSquare)) {
+      movedPiece = piece;
     }
   }
+
+  *friendlyPieces &= ~(1ul << destinationSquare);
+  *friendlyPieces |= (1ul << originSquare);
+  state.bitboards[movedPiece] &= ~(1ul << destinationSquare);
+  state.bitboards[movedPiece] |= (1ul << originSquare);
 
   if (capturedPiece != Board::None) {
     *opponentPieces |= (1ul << destinationSquare);
     state.bitboards[capturedPiece] |= (1ul << destinationSquare);
   }
 
-  if (movingPiece == Board::Rook) {
+  switch (flag) {
+  case PromotionFlag:
+    state.bitboards[promotionPiece] &= ~(1ul << originSquare);
+    state.bitboards[Board::Pawn] |= (1ul << originSquare);
+  case EnPassantFlag: {
+    int enPassantCaptureSquare =
+        destinationSquare + (state.whiteToPlay ? Up : Down);
+    *opponentPieces |= (1ul << enPassantCaptureSquare);
+    state.bitboards[Board::Pawn] |= (1ul << enPassantCaptureSquare);
+  }
+  case CastleFlag: {
+    bool isShortCastle = true;
+    if (destinationSquare - originSquare == Left * 3) {
+      isShortCastle = false;
+    }
+
+    int rookOriginSquare =
+        (isShortCastle ? shortCastleRookPosition(state.whiteToPlay)
+                       : longCastleRookPosition(state.whiteToPlay));
+    int rookDestinationSquare =
+        rookOriginSquare + (isShortCastle ? (Right * 2) : (Left * 3));
+
+    state.bitboards[Board::Rook] &= ~(1ul << rookDestinationSquare);
+    state.bitboards[Board::Rook] |= (1ul << rookOriginSquare);
+    *friendlyPieces &= ~(1ul << rookDestinationSquare);
+    *friendlyPieces |= (1ul << rookOriginSquare);
+
+    state.canLongCastle = true;
+    state.canShortCastle = true;
+  }
+  }
+
+  if (movedPiece == Board::Rook) {
     if (originSquare % 8 == fileH) {
       state.canShortCastle = true;
     } else if (originSquare % 8 == fileA) {
       state.canLongCastle = true;
     }
   }
-  state.enPassantSquare = 0;
+
+  bool isDoubleMove =
+      (destinationSquare - originSquare) == (state.whiteToPlay ? Up : Down) * 2;
+  if ((movedPiece == Board::Pawn) && isDoubleMove) {
+    state.enPassantSquare = destinationSquare + (state.whiteToPlay ? Down : Up);
+  } else {
+    state.enPassantSquare = 0;
+  }
 }
