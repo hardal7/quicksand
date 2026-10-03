@@ -55,7 +55,7 @@ enum Directions {
   Backward = 1,
 };
 
-const std::map<int, uint64_t> constraints = {
+const std::map<int, uint64_t> Constraints = {
     {Up, rankEightMask},
     {Down, rankOneMask},
     {Left, fileAMask},

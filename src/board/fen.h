@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../../include/types.h"
+#include "board.h"
 #include <string>
 
 const std::string startingFEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR";

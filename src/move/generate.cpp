@@ -1,5 +1,4 @@
-#include "../../include/enums.h"
-#include "../../include/types.h"
+#include "../board/board.h"
 #include "castle.h"
 #include "create.h"
 #include <cstdint>
@@ -24,7 +23,7 @@ bool destinationIsEmpty(const GameState &state, int destinationSquare) {
   return !(allPieces & 1ul << destinationSquare);
 }
 bool moveConstrained(int square, int move) {
-  Board::Bitboard constraintMask = constraints.at(move);
+  Board::Bitboard constraintMask = Constraints.at(move);
   return constraintMask & (1ul << square);
 }
 
@@ -63,7 +62,7 @@ void generatePawnMoves(const GameState &state,
         (opponentPieces | (1ul << state.enPassantSquare)) &
         1ul << destinationSquare;
 
-    uint64_t constraintMask = constraints.at(move);
+    uint64_t constraintMask = Constraints.at(move);
     bool moveConstrained = constraintMask & (1ul << square);
 
     if (occupiedByOpponent && !moveConstrained) {

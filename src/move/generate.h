@@ -1,6 +1,5 @@
 #pragma once
 
-#include "../../include/enums.h"
 #include "create.h"
 
 void generateMoves(const GameState &state,

@@ -3,7 +3,7 @@
 #include <array>
 #include <cstdint>
 
-const int BOARD_SQUARES = 64, RANK_SQUARES = 8, PIECES = 8;
+const int BOARD_SQUARES = 64, RANK_SQUARES = 8, PIECES = 8, COLORS = 2;
 
 class Board {
 public:

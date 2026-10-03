@@ -1,5 +1,6 @@
 #pragma once
 
+#include "command.h"
 #include <string>
 
-std::string handleUCI(bool firstCmd);
+command handleUCI(std::string lastCmd, command c = command{None});

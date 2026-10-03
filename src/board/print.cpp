@@ -1,4 +1,4 @@
-#include "../../include/types.h"
+#include "board.h"
 #include <bitset>
 #include <cctype>
 #include <iostream>
@@ -38,11 +38,11 @@ void printBoard(GameState state) {
     }
   }
 
-  std::cout << board << std::endl;
+  std::cerr << board << std::endl;
 }
 
 void printBitboards(Board::Bitboards bitboards) {
   for (auto b : bitboards) {
-    std::cout << std::bitset<64>(b) << std::endl;
+    std::cerr << std::bitset<64>(b) << std::endl;
   }
 }

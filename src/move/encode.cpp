@@ -1,5 +1,5 @@
 #include "encode.h"
-#include "../../include/types.h"
+#include "../board/board.h"
 #include "castle.h"
 #include <string>
 #include <utility>

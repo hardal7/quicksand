@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../../include/types.h"
+#include "../board/board.h"
 #include <array>
 
 using pieceSquareTables = std::array<int, BOARD_SQUARES>;

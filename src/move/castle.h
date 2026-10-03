@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../../include/types.h"
+#include "../board/board.h"
 
 int shortcastleKingSquare(bool whiteToPlay);
 int longcastleKingSquare(bool whiteToPlay);

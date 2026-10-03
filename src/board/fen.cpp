@@ -1,4 +1,4 @@
-#include "../../include/types.h"
+#include "board.h"
 #include <cctype>
 #include <string>
 

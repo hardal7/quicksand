@@ -1,8 +1,8 @@
 #pragma once
 
-#include "../../include/enums.h"
-#include "../../include/types.h"
+#include "../board/board.h"
 #include "encode.h"
+#include "enums.h"
 #include <optional>
 
 void createMove(int OriginSquare, int destinationSquare,

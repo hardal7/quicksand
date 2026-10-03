@@ -1,7 +1,7 @@
-#include "../../include/enums.h"
-#include "../../include/types.h"
+#include "../board/board.h"
 #include "castle.h"
 #include "encode.h"
+#include "enums.h"
 #include <algorithm>
 #include <optional>
 

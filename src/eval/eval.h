@@ -1,5 +1,5 @@
 #pragma once
 
-#include "../../include/types.h"
+#include "../board/board.h"
 
 int evaluateBoard(const GameState &state);

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../../include/types.h"
+#include "../board/board.h"
 #include <string>
 
 using move = uint16_t;

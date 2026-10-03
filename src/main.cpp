@@ -1,75 +1,53 @@
-#include "../include/types.h"
+#include "board/board.h"
+#include "board/fen.h"
+#include "board/print.h"
 #include "interface/uci.h"
 #include "move/create.h"
 #include "move/encode.h"
 #include "search/search.h"
-#include "utils/loadFEN.h"
-#include "utils/printBoard.h"
 #include <iostream>
 
-void gameLoop(GameState &state) {
+void gameLoop() {
+  GameState state;
+
+  std::string lastCmd = "position startpos moves";
   while (true) {
-    printBoard(state);
-    std::cout << (state.whiteToPlay ? "White" : "Black") << " to play"
-              << std::endl;
+    command c = handleUCI(lastCmd);
 
-    if (state.whiteToPlay) {
-      std::string userMove = "";
-      std::cout << "Enter move: ";
-      std::cin >> userMove;
+    if (c.cmd == Commands::Quit) {
+      break;
+    }
 
-      if (userMove == "q" || userMove == "quit") {
-        std::cout << "'q' or 'quit' entered, quitting." << std::endl;
-        return;
+    if (c.cmd == Commands::NewGame) {
+      loadFEN(state);
+    }
+
+    if (c.cmd == Commands::UserMove) {
+      if (c.val != NO_MOVE) {
+        lastCmd += " " + c.val;
+        move m = encodeMove(state, c.val);
+        makeMove(state, m);
+        printBoard(state);
       }
 
-      makeMove(state, encodeMove(state, userMove));
-    } else {
-      std::cout << "Thinking best move..." << std::endl;
-      const int DEPTH = 2;
+      std::cerr << "Thinking best move..." << std::endl;
+      const int DEPTH = 4;
       int nodes = 0;
       move bestMove = searchBestMove(state, DEPTH, DEPTH, nodes);
 
-      makeMove(state, bestMove);
-      std::cout << "Made move: " << decodeMove(bestMove) << std::endl;
-
       const int MILLION = 1'000'000;
-      std::cout << "Searched " << nodes / MILLION << "M nodes" << std::endl;
+      std::cerr << "Searched " << nodes / MILLION << "M nodes" << std::endl;
+
+      makeMove(state, bestMove);
+      printBoard(state);
+
+      lastCmd += " " + decodeMove(bestMove);
+      handleUCI(lastCmd, command{BestMove, decodeMove(bestMove)});
     }
   }
 }
 
 int main() {
-  // loadFEN(state, "r1bk3r/p2pBpNp/n4n2/1p1NP2P/6P1/3P4/P1P1K3/q5b1");
-  // std::cout << "Evaluation: " << evaluateBoard(state) << std::endl;
-  GameState state;
-  loadFEN(state);
-  // gameLoop(state);
-
-  bool firstCmd = true;
-
-  while (true) {
-    std::string cmd = handleUCI(firstCmd);
-    firstCmd = false;
-
-    if (cmd == "quit") {
-      return 0;
-    }
-
-    if (cmd != "") {
-      if (cmd != "position startpos") {
-        move m = encodeMove(state, cmd);
-        makeMove(state, m);
-      }
-
-      std::cout << "Thinking best move..." << std::endl;
-      const int DEPTH = 2;
-      int nodes = 0;
-      move bestMove = searchBestMove(state, DEPTH, DEPTH, nodes);
-      std::cout << cmd << std::endl;
-      std::cout << "bestmove " << decodeMove(bestMove) << std::endl;
-    }
-  }
-
+  gameLoop();
   return 0;
 }

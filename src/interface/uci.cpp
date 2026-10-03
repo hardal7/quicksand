@@ -1,48 +1,45 @@
+#include "command.h"
 #include <iostream>
 #include <string>
 
 const std::string ENGINE_NAME = "quicksand", AUTHOR_NAME = "hardal";
 
-std::string handleUCI(bool firstCmd) {
-  std::string lastCmd = "";
+command handleUCI(std::string lastCmd, command c = command{None}) {
+  if (c.cmd == BestMove) {
+    std::cout << "bestmove " << c.val << std::endl;
+    return command{None};
+  }
 
-  std::string cmd = "";
-  std::getline(std::cin, cmd);
+  std::string userCmd = "";
 
-  if (cmd == "uci") {
+  std::getline(std::cin, userCmd);
+
+  if (userCmd == "uci") {
     std::cout << "id name " << ENGINE_NAME << std::endl;
     std::cout << "id author " << AUTHOR_NAME << std::endl;
     std::cout << "uciok" << std::endl;
-    return "";
+    return command{None};
   }
 
-  else if (cmd == "isready") {
+  else if (userCmd == "isready") {
     std::cout << "readyok" << std::endl;
-    return "";
+    return command{NewGame};
   }
 
-  else if (cmd.find("position startpos") != std::string::npos) {
-    if (firstCmd) {
-      if (cmd.find("moves") != std::string::npos) {
-        lastCmd = "position startpos ";
-      } else {
-        lastCmd = "position startpos moves ";
-      }
+  else if (userCmd.find("position startpos") != std::string::npos) {
+    std::string move = "";
+    if (userCmd.find("position startpos moves") != std::string::npos) {
+      size_t pos = userCmd.find_last_of(' ');
+      move = userCmd.substr(pos + 1);
+    } else {
+      move = NO_MOVE;
     }
-
-    std::string moveString = cmd;
-    int pos = moveString.find(lastCmd);
-    if (pos != std::string::npos) {
-      cmd.erase(pos, lastCmd.length());
-    }
+    return command{UserMove, move};
   }
 
-  else if (cmd == "quit") {
-    return cmd;
+  else if (userCmd == "quit") {
+    return command{Quit};
   }
 
-  lastCmd = cmd;
-  return cmd;
+  return command{None};
 }
-
-// bestmove e2e4

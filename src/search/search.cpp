@@ -1,4 +1,4 @@
-#include "../../include/types.h"
+#include "../board/board.h"
 #include "../eval/eval.h"
 #include "../move/create.h"
 #include "../move/encode.h"

@@ -1,5 +1,5 @@
-#include "../../include/enums.h"
-#include "../../include/types.h"
+#include "../board/board.h"
+#include "enums.h"
 
 int shortcastleKingSquare(bool whiteToPlay) {
   return fileB + (whiteToPlay ? rankOne : rankEight);
