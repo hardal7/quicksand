@@ -1,14 +1,12 @@
 #include "../types.h"
-#include "square.h"
+#include "board.h"
 #include <sstream>
 #include <string>
 
 void loadFEN(GameState &state, std::string fen) {
   std::istringstream in(fen);
-  std::string pieces, colorToPlay, castlingRights, enPassantSquare,
-      halfmoveClock, fullmoveNumber;
-  in >> pieces >> colorToPlay >> castlingRights >> enPassantSquare >>
-      halfmoveClock >> fullmoveNumber;
+  std::string pieces, colorToPlay, castlingRights, enPassantSquare, halfmoveClock, fullmoveNumber;
+  in >> pieces >> colorToPlay >> castlingRights >> enPassantSquare >> halfmoveClock >> fullmoveNumber;
 
   int square = 0;
   Board::Indexes color;
@@ -59,6 +57,6 @@ void loadFEN(GameState &state, std::string fen) {
   }
 
   if (enPassantSquare != "-") {
-    state.enPassantSquare = squareFromPosition(enPassantSquare);
+    state.enPassantSquare = Board::squareFromPosition(enPassantSquare);
   }
 }

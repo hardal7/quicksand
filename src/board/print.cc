@@ -1,4 +1,5 @@
 #include "../types.h"
+#include "board.h"
 #include <bitset>
 #include <iostream>
 #include <string>
