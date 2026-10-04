@@ -5,9 +5,16 @@
 #include "../move/generate.h"
 #include "../move/make.h"
 
-int searchBestMove(GameState &state, int depth, int rootDepth, int &nodes,
-                   int alpha, int beta) {
+const int POLLING_INTERVAL = 1'000'000;
+
+int searchBestMove(std::atomic<bool> &timerExpired, GameState &state, int depth,
+                   int rootDepth, int &nodes, int alpha, int beta) {
   int bestEval = INFINITY * (state.whiteToPlay ? -1 : 1);
+  if (nodes % POLLING_INTERVAL) {
+    if (timerExpired) {
+      return NO_MOVE;
+    }
+  }
 
   std::array<ScoredMove, MAX_MOVES> moves = {NO_MOVE};
   generateMoves(state, moves);
@@ -23,7 +30,8 @@ int searchBestMove(GameState &state, int depth, int rootDepth, int &nodes,
 
     int eval = bestEval;
     if (depth != 1) {
-      eval = searchBestMove(state, depth - 1, rootDepth, nodes, alpha, beta);
+      eval = searchBestMove(timerExpired, state, depth - 1, rootDepth, nodes,
+                            alpha, beta);
     } else {
       eval = evaluateBoard(state);
     }

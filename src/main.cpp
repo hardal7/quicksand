@@ -5,7 +5,12 @@
 #include "move/encode.h"
 #include "move/make.h"
 #include "search/search.h"
+#include <atomic>
+#include <chrono>
 #include <iostream>
+#include <sstream>
+#include <string>
+#include <thread>
 
 void gameLoop() {
   GameState state;
@@ -22,6 +27,20 @@ void gameLoop() {
       loadFEN(state);
     }
 
+    const int DEFAULT_MOVETIME = 5;
+    int moveTimeSeconds = DEFAULT_MOVETIME;
+    if (c.cmd == Commands::Time) {
+      std::istringstream iss(c.val);
+      std::string timeStr, incrementStr;
+      iss >> timeStr >> incrementStr;
+
+      int time = 0, increment = 0;
+      time = std::stoi(timeStr);
+      increment = std::stoi(incrementStr);
+
+      moveTimeSeconds = time / 20 + increment / 2;
+    }
+
     if (c.cmd == Commands::UserMove) {
       if (c.val != NO_MOVE_STR) {
         lastCmd += " " + c.val;
@@ -33,12 +52,39 @@ void gameLoop() {
       std::cerr << "Thinking best move for "
                 << (state.whiteToPlay ? "White" : "Black") << "..."
                 << std::endl;
-      const int DEPTH = 6;
-      int nodes = 0;
-      move bestMove = searchBestMove(state, DEPTH, DEPTH, nodes);
+
+      std::atomic<bool> timerExpired = false;
+      std::thread timer([moveTimeSeconds, &timerExpired] {
+        std::this_thread::sleep_for(std::chrono::seconds(moveTimeSeconds));
+        timerExpired = true;
+      });
 
       const int MILLION = 1'000'000;
-      std::cerr << "Searched " << nodes / MILLION << "M nodes" << std::endl;
+      int nodes = 0;
+      move bestMove = NO_MOVE;
+      int depth = 1;
+
+      auto start = std::chrono::steady_clock::now();
+      while (true) {
+        std::cerr << "Searching at Depth: " << depth << std::endl;
+
+        move candidateMove =
+            searchBestMove(timerExpired, state, depth, depth, nodes);
+
+        if (!timerExpired) {
+          bestMove = candidateMove;
+          depth++;
+        } else {
+          auto elapsed = std::chrono::steady_clock::now() - start;
+          start = std::chrono::steady_clock::now();
+          auto time =
+              std::chrono::duration_cast<std::chrono::seconds>(elapsed).count();
+          std::cerr << "Searched " << nodes / MILLION << "M nodes in " << time
+                    << "s" << std::endl;
+          break;
+        }
+      }
+      timer.join();
 
       makeMove(state, bestMove);
       printBoard(state);
