@@ -24,5 +24,5 @@ clean:
 run: build
 	./$(EXEC)
 
-test:
+test: clean
 	cmake -S . -B build && cmake --build build && cd build && ctest

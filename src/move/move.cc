@@ -13,19 +13,26 @@ Encoded Move::encode(Readable move) {
   return encoded;
 }
 
-void Move::insert(List &list, Readable m) {
+void Move::insert(List &movesList, Readable m) {
+  int move = m.DestinationSquare - m.OriginSquare;
+  if (Constraints.find(move) != Constraints.end()) {
+    Board::bitboard constraintMask = Constraints.at(move);
+    bool moveConstrained = constraintMask & (1ul << m.OriginSquare);
+    if (moveConstrained) {
+      return;
+    }
+  }
+
   if (m.Flag != Promotion) {
-    auto it = std::find(list.begin(), list.end(), NoMove);
-    int index = it - list.begin();
-    list[index] = encode(m);
+    movesList.list[movesList.length] = encode(m);
+    movesList.length++;
   }
 
   else {
     for (Move::PromotionPiece piece : PromotionPieces) {
-      auto it = std::find(list.begin(), list.end(), NoMove);
-      int index = it - list.begin();
       m.PromotionPiece = piece;
-      list[index] = encode(m);
+      movesList.list[movesList.length] = encode(m);
+      movesList.length++;
     }
   }
 }
