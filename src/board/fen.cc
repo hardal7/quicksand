@@ -9,9 +9,9 @@ void loadFEN(GameState &state, std::string fen) {
   in >> pieces >> colorToPlay >> castlingRights >> enPassantSquare >> halfmoveClock >> fullmoveNumber;
 
   int square = 0;
-  Board::Indexes color;
+  Board::Index color;
 
-  for (auto c : pieces) {
+  for (char c : pieces) {
     if (c == '/') {
       continue;
     }

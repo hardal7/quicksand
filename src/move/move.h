@@ -18,15 +18,15 @@ const int PromotionPieceOffset = 14;
 
 using Encoded = uint16_t;
 
-enum Flags { None, Promotion, Castle, EnPassant };
-const int PROMOTION_PIECES = 4;
-enum PromotionPieces { Knight, Bishop, Rook, Queen };
+enum Flag { NoFlag, Promotion, Castle, EnPassant };
+enum PromotionPiece { Knight, Bishop, Rook, Queen };
+const std::array<PromotionPiece, 4> PromotionPieces = {Knight, Bishop, Rook, Queen};
 
 struct Readable {
   int OriginSquare;
   int DestinationSquare;
-  Flags Flag;
-  PromotionPieces PromotionPiece;
+  Flag Flag = NoFlag;
+  PromotionPiece PromotionPiece;
 };
 
 Encoded encode(Readable move);

@@ -34,7 +34,7 @@ void printBoard(const GameState &state) {
 }
 
 void printBitboards(const GameState &state) {
-  for (auto bitboard : state.Bitboards) {
+  for (Board::bitboard bitboard : state.Bitboards) {
     std::cerr << std::bitset<Board::TotalSquares>(bitboard) << std::endl;
   }
 }

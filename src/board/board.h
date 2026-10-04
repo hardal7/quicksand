@@ -27,7 +27,7 @@ const int FileSquares = 8;
 const int RankSquares = 8;
 
 using Piece = int;
-enum Indexes : Piece { Pawn, Knight, Bishop, Rook, Queen, King, White, Black };
+enum Index : Piece { Pawn, Knight, Bishop, Rook, Queen, King, White, Black };
 
 const std::map<char, Piece> PieceFromChars = {
     {'p', Pawn}, {'n', Knight}, {'b', Bishop}, {'r', Rook}, {'q', Queen}, {'k', King},
@@ -39,5 +39,5 @@ const std::map<Piece, char> PieceToChars = {
 int squareFromPosition(std::string position);
 std::string squareToPosition(int square);
 
-enum Directions { Up = -8, Down = 8, Left = -1, Right = 1 };
+enum Direction { Up = -8, Down = 8, Left = -1, Right = 1 };
 }; // namespace Board

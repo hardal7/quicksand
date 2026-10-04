@@ -14,8 +14,18 @@ Encoded Move::encode(Readable move) {
 }
 
 void Move::insert(List &list, Readable m) {
-  auto it = std::find(list.begin(), list.end(), NoMove);
-  int index = it - list.begin();
+  if (m.Flag != Promotion) {
+    auto it = std::find(list.begin(), list.end(), NoMove);
+    int index = it - list.begin();
+    list[index] = encode(m);
+  }
 
-  list[index] = encode(m);
+  else {
+    for (Move::PromotionPiece piece : PromotionPieces) {
+      auto it = std::find(list.begin(), list.end(), NoMove);
+      int index = it - list.begin();
+      m.PromotionPiece = piece;
+      list[index] = encode(m);
+    }
+  }
 }
