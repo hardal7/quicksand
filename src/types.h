@@ -4,7 +4,8 @@
 #include <cstdint>
 #include <map>
 
-struct GameState : Board {
+struct GameState {
+  Board::bitboard Bitboards[Board::Pieces + Board::Colors] = {0};
   bool WhiteToPlay = true;
 
   bool WhiteShortCastle = true;
