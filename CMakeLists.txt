@@ -14,7 +14,7 @@ FetchContent_Declare(
 FetchContent_MakeAvailable(googletest)
 
 file(GLOB SRC_SOURCES CONFIGURE_DEPENDS
-  "${CMAKE_CURRENT_SOURCE_DIR}/src/*/*.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/src/*/*.cc"
 )
 
 add_library(quicksand_lib ${SRC_SOURCES})
@@ -27,7 +27,7 @@ target_include_directories(quicksand_lib PUBLIC
 enable_testing()
 
 file(GLOB TEST_SOURCES CONFIGURE_DEPENDS
-  "${CMAKE_CURRENT_SOURCE_DIR}/tests/*.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/tests/*.cc"
 )
 
 add_executable(quicksand_tests ${TEST_SOURCES})
