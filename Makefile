@@ -1,5 +1,5 @@
 CC = g++
-CFLAGS = -Wall -O3
+CFLAGS = -std=c++17 -pedantic-errors -Wall -Wextra -O3
 
 SRC_DIR = src
 BUILD_DIR = build
