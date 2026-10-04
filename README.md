@@ -5,4 +5,6 @@ Evaluation:
 Search:
 - MiniMax
 - Alpha-Beta Pruning
-- Move Ordering
+- Move Ordering:
+    - MVV-LVA
+- Quiescence Search

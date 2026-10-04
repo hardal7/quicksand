@@ -5,8 +5,8 @@
 #include <algorithm>
 #include <array>
 
-void orderMoves(GameState &state, std::array<ScoredMove, MAX_MOVES> moves) {
-  for (ScoredMove m : moves) {
+void orderMoves(GameState &state, std::array<ScoredMove, MAX_MOVES> &moves) {
+  for (ScoredMove &m : moves) {
     if (m.value == NO_MOVE) {
       break;
     }
@@ -21,13 +21,18 @@ void orderMoves(GameState &state, std::array<ScoredMove, MAX_MOVES> moves) {
 
     Board::Piece capturedPiece = makeMove(state, m.value);
 
-    m.score = capturedPiece - movedPiece;
+    if (capturedPiece != Board::None) {
+      m.score += capturedPiece * 100 - movedPiece;
+    }
 
     unmakeMove(state, m.value, capturedPiece);
   }
 
   std::sort(moves.begin(), moves.end(),
             [](const ScoredMove &a, const ScoredMove &b) {
+              if ((a.value == 0) != (b.value == 0))
+                return a.value != 0;
+
               return a.score > b.score;
             });
 }

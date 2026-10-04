@@ -6,9 +6,11 @@
 #include "../move/make.h"
 
 const int POLLING_INTERVAL = 1'000'000;
+const int MIN_QUIESCENCE_DEPTH = -16;
 
 int searchBestMove(std::atomic<bool> &timerExpired, GameState &state, int depth,
-                   int rootDepth, int &nodes, int alpha, int beta) {
+                   int rootDepth, int &nodes, int alpha, int beta,
+                   bool quiescence) {
   int bestEval = INFINITY * (state.whiteToPlay ? -1 : 1);
   if (nodes % POLLING_INTERVAL) {
     if (timerExpired) {
@@ -20,22 +22,36 @@ int searchBestMove(std::atomic<bool> &timerExpired, GameState &state, int depth,
   generateMoves(state, moves);
   orderMoves(state, moves);
 
+  int movesExplored = 0;
   move bestMove = NO_MOVE;
+
   for (ScoredMove m : moves) {
     if (m.value == NO_MOVE) {
       break;
     }
+
+    if (quiescence && m.score < MinCaptureScore) {
+      break;
+    }
+
     Board::Piece capturedPiece = makeMove(state, m.value);
     nodes++;
 
     int eval = bestEval;
-    if (depth != 1) {
+    if (depth > 1) {
       eval = searchBestMove(timerExpired, state, depth - 1, rootDepth, nodes,
                             alpha, beta);
     } else {
-      eval = evaluateBoard(state);
+      if (depth > MIN_QUIESCENCE_DEPTH) {
+        eval = searchBestMove(timerExpired, state, depth - 1, rootDepth, nodes,
+                              alpha, beta, true);
+      } else {
+        eval = evaluateBoard(state);
+      }
     }
+
     unmakeMove(state, m.value, capturedPiece);
+    movesExplored++;
 
     if (state.whiteToPlay ? (eval > bestEval) : (eval < bestEval)) {
       bestEval = eval;
@@ -57,6 +73,10 @@ int searchBestMove(std::atomic<bool> &timerExpired, GameState &state, int depth,
     if (beta <= alpha) {
       break;
     }
+  }
+
+  if (quiescence && movesExplored == 0) {
+    bestEval = evaluateBoard(state);
   }
 
   return depth == rootDepth ? bestMove : bestEval;

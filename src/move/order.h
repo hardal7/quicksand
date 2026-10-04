@@ -9,4 +9,6 @@ struct ScoredMove {
   int score;
 };
 
-void orderMoves(GameState &state, std::array<ScoredMove, MAX_MOVES> moves);
+const int MinCaptureScore = 1;
+
+void orderMoves(GameState &state, std::array<ScoredMove, MAX_MOVES> &moves);
