@@ -1,4 +1,5 @@
 #include "../types.h"
+#include <iostream>
 #include <sstream>
 #include <string>
 
@@ -9,13 +10,13 @@ void loadFEN(GameState &state, std::string fen) {
   in >> pieces >> colorToPlay >> castlingRights >> enPassantSquare >>
       halfmoveClock >> fullmoveNumber;
 
-  for (auto c : pieces) {
-    if (c == ' ') {
-      break;
-    }
+  int square = 0;
+  Board::Indexes color;
 
-    Board::Indexes color;
-    int square = 0;
+  for (auto c : pieces) {
+    if (c == '/') {
+      continue;
+    }
 
     char lowerC = std::tolower(c);
     if (c == lowerC) {
@@ -25,13 +26,14 @@ void loadFEN(GameState &state, std::string fen) {
     }
     c = lowerC;
 
-    auto pair = Piece::Chars.find(c);
-    if (pair != Piece::Chars.end()) {
+    auto pair = Board::PieceFromChars.find(c);
+    if (pair != Board::PieceFromChars.end()) {
       state.Bitboards[color] |= (1ul << square);
       state.Bitboards[pair->second] |= (1ul << square);
+      square++;
     }
 
-    else if (c != '/') {
+    else {
       square += (c - '0');
     }
   }

@@ -10,17 +10,30 @@ public:
   static const int Pieces = 6;
   static const int Colors = 2;
 
-  enum Indexes { Pawn, Knight, Bishop, Rook, Queen, King, White, Black };
+  static const int TotalSquares = 64;
+  static const int FileSquares = 8;
+  static const int RankSquares = 8;
+
+  using Piece = int;
+  enum Indexes : Piece {
+    Pawn,
+    Knight,
+    Bishop,
+    Rook,
+    Queen,
+    King,
+    White,
+    Black
+  };
   bitboard Bitboards[Pieces + Colors] = {0};
-};
 
-class Piece {
-public:
-  enum Type { Pawn, Knight, Bishop, Rook, Queen, King, None };
-
-  inline static const std::map<char, Type> Chars = {
+  inline static const std::map<char, Piece> PieceFromChars = {
       {'p', Pawn}, {'n', Knight}, {'b', Bishop},
       {'r', Rook}, {'q', Queen},  {'k', King},
+  };
+  inline static const std::map<Piece, char> PieceToChars = {
+      {Pawn, 'p'}, {Knight, 'n'}, {Bishop, 'b'},
+      {Rook, 'r'}, {Queen, 'q'},  {King, 'k'},
   };
 };
 
