@@ -42,16 +42,110 @@ void pawnMoves(const GameState &state, int square, Move::List &movesList) {
   }
 }
 
-void knightMoves(const GameState &state, int square, Move::List &movesList) {}
-void bishopMoves(const GameState &state, int square, Move::List &movesList) {}
-void rookMoves(const GameState &state, int square, Move::List &movesList) {}
+void knightMoves(const GameState &state, int square, Move::List &movesList) {
+  const Board::bitboard *friendlyPieces = &state.Bitboards[state.WhiteToPlay ? Board::White : Board::Black];
+
+  // clang-format off
+  const std::array<int, 8> knightMoves = {
+      Board::Up * 2 + Board::Left, Board::Up * 2 + Board::Right,
+      Board::Down * 2 + Board::Left, Board::Down * 2 + Board::Right,
+      Board::Left * 2 + Board::Up, Board::Left * 2 + Board::Down,
+      Board::Right * 2 + Board::Up,  Board::Right * 2 + Board::Down,
+  };
+  // clang-format on
+
+  for (auto move : knightMoves) {
+    int destinationSquare = square + move;
+    bool friendlyOnDestination = *friendlyPieces & (1ul << destinationSquare);
+    if (!friendlyOnDestination) {
+      Move::insert(movesList, Move::Readable{square, destinationSquare});
+    }
+  }
+}
+
+void bishopMoves(const GameState &state, int square, Move::List &movesList) {
+  const Board::bitboard *friendlyPieces = &state.Bitboards[state.WhiteToPlay ? Board::White : Board::Black];
+  const Board::bitboard *opponentPieces = &state.Bitboards[state.WhiteToPlay ? Board::Black : Board::White];
+  const std::array<int, 4> bishopMoves = {Board::Up + Board::Right, Board::Up + Board::Left, Board::Down + Board::Left,
+                                          Board::Down + Board::Right};
+
+  for (auto move : bishopMoves) {
+    for (int magnitude = 1; magnitude <= Board::RankSquares; magnitude++) {
+      int destinationSquare = square + move * magnitude;
+      if (destinationSquare < 0 || destinationSquare > Board::TotalSquares - 1) {
+        break;
+      }
+
+      bool friendlyOnDestination = *friendlyPieces & (1ul << destinationSquare);
+      bool opponentOnDestination = *opponentPieces & (1ul << destinationSquare);
+
+      if (friendlyOnDestination) {
+        break;
+      } else if (opponentOnDestination) {
+        Move::insert(movesList, Move::Readable{square, destinationSquare});
+        break;
+      } else {
+        Move::insert(movesList, Move::Readable{square, destinationSquare});
+      }
+    }
+  }
+}
+
+void rookMoves(const GameState &state, int square, Move::List &movesList) {
+  const Board::bitboard *friendlyPieces = &state.Bitboards[state.WhiteToPlay ? Board::White : Board::Black];
+  const Board::bitboard *opponentPieces = &state.Bitboards[state.WhiteToPlay ? Board::Black : Board::White];
+  const std::array<int, 4> rookMoves = {Board::Up, Board::Down, Board::Left, Board::Right};
+
+  for (auto move : rookMoves) {
+    for (int magnitude = 1; magnitude <= Board::RankSquares; magnitude++) {
+      int destinationSquare = square + move * magnitude;
+      if (destinationSquare < 0 || destinationSquare > Board::TotalSquares - 1) {
+        break;
+      }
+
+      bool friendlyOnDestination = *friendlyPieces & (1ul << destinationSquare);
+      bool opponentOnDestination = *opponentPieces & (1ul << destinationSquare);
+
+      if (friendlyOnDestination) {
+        break;
+      } else if (opponentOnDestination) {
+        Move::insert(movesList, Move::Readable{square, destinationSquare});
+        break;
+      } else {
+        Move::insert(movesList, Move::Readable{square, destinationSquare});
+      }
+    }
+  }
+}
 
 void queenMoves(const GameState &state, int square, Move::List &movesList) {
   rookMoves(state, square, movesList);
   bishopMoves(state, square, movesList);
 }
 
-void kingMoves(const GameState &state, int square, Move::List &movesList) {}
+void kingMoves(const GameState &state, int square, Move::List &movesList) {
+  const Board::bitboard *friendlyPieces = &state.Bitboards[state.WhiteToPlay ? Board::White : Board::Black];
+
+  const std::array<int, 8> kingMoves = {
+      Board::Up,
+      Board::Down,
+      Board::Left,
+      Board::Right,
+
+      Board::Up + Board::Left,
+      Board::Up + Board::Right,
+      Board::Down + Board::Left,
+      Board::Down + Board::Right,
+  };
+
+  for (auto move : kingMoves) {
+    int destinationSquare = square + move;
+    bool friendlyOnDestination = *friendlyPieces & (1ul << destinationSquare);
+    if (!friendlyOnDestination) {
+      Move::insert(movesList, Move::Readable{square, destinationSquare});
+    }
+  }
+}
 
 void generateMoves(const GameState &state, Move::List &movesList) {
   movesList = {Move::NoMove};
@@ -64,6 +158,21 @@ void generateMoves(const GameState &state, Move::List &movesList) {
         switch (piece) {
         case Board::Pawn:
           pawnMoves(state, square, movesList);
+          break;
+        case Board::Knight:
+          knightMoves(state, square, movesList);
+          break;
+        case Board::Bishop:
+          bishopMoves(state, square, movesList);
+          break;
+        case Board::Rook:
+          rookMoves(state, square, movesList);
+          break;
+        case Board::Queen:
+          queenMoves(state, square, movesList);
+          break;
+        case Board::King:
+          kingMoves(state, square, movesList);
           break;
         }
       }
