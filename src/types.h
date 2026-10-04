@@ -44,4 +44,6 @@ struct GameState : Board {
   bool WhiteLongCastle = true;
   bool BlackShortCastle = true;
   bool BlackLongCastle = true;
+
+  int enPassantSquare = 0;
 };

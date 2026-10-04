@@ -1,5 +1,5 @@
 #include "../types.h"
-#include <iostream>
+#include "square.h"
 #include <sstream>
 #include <string>
 
@@ -56,5 +56,9 @@ void loadFEN(GameState &state, std::string fen) {
   } else if (castlingRights == "qK") {
     state.BlackLongCastle = true;
     state.WhiteShortCastle = true;
+  }
+
+  if (enPassantSquare != "-") {
+    state.enPassantSquare = squareFromPosition(enPassantSquare);
   }
 }
