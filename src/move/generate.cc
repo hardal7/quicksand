@@ -37,7 +37,7 @@ void pawnMoves(const GameState &state, int square, List &movesList) {
   const std::array<int, 2> captureMoves = {Up + Left, Up + Right};
   for (auto move : captureMoves) {
     int destinationSquare = square + move * direction;
-    bool opponentOnDestination = *opponentPieces(state) & state.enPassantSquare & (1ul << destinationSquare);
+    bool opponentOnDestination = (*opponentPieces(state) | (1ul << state.enPassantSquare)) & (1ul << destinationSquare);
     if (opponentOnDestination) {
       Flag enPassantFlag = NoFlag;
       if (destinationSquare == state.enPassantSquare) {

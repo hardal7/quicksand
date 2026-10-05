@@ -66,7 +66,7 @@ std::optional<Board::Piece> Move::make(GameState &state, Encoded move) {
   case Castle: {
     bool isShortCastle = (m.DestinationSquare - m.OriginSquare) == (Right * 2);
     int originSquare = std::__countr_zero(friendlyCastlingRank & (isShortCastle ? Board::FileH : Board::FileA));
-    int destinationSquare = originSquare + (Left * 2 * (isShortCastle ? 1 : -1));
+    int destinationSquare = originSquare + ((isShortCastle ? Left : Right) * 2);
 
     *friendlyPieces &= ~(1ul << originSquare);
     state.Bitboards[Board::Rook] &= ~(1ul << originSquare);
@@ -91,7 +91,7 @@ std::optional<Board::Piece> Move::make(GameState &state, Encoded move) {
 
   bool notMoved = (1ul << m.OriginSquare) & (state.WhiteToPlay ? Board::RankTwo : Board::RankSeven);
   if ((movedPiece == Board::Pawn) && notMoved) {
-    state.enPassantSquare = m.DestinationSquare + (state.WhiteToPlay ? Up : Down);
+    state.enPassantSquare = m.DestinationSquare + (state.WhiteToPlay ? Down : Up);
   } else {
     state.enPassantSquare = 0;
   }
@@ -145,7 +145,6 @@ void Move::unmake(GameState &state, Move::Encoded move, std::optional<Board::Pie
     }
   }
 
-  Board::bitboard friendlyCastlingRank = (state.WhiteToPlay ? Board::RankOne : Board::RankEight);
   switch (m.Flag) {
   case NoFlag:
     break;
@@ -173,9 +172,10 @@ void Move::unmake(GameState &state, Move::Encoded move, std::optional<Board::Pie
     break;
   }
   case Castle: {
+    Board::bitboard friendlyCastlingRank = (state.WhiteToPlay ? Board::RankOne : Board::RankEight);
     bool isShortCastle = (m.DestinationSquare - m.OriginSquare) == (Right * 2);
     int originSquare = std::__countr_zero(friendlyCastlingRank & (isShortCastle ? Board::FileH : Board::FileA));
-    int destinationSquare = originSquare + (Left * 2 * (isShortCastle ? 1 : -1));
+    int destinationSquare = originSquare + ((isShortCastle ? Left : Right) * 2);
 
     *friendlyPieces &= ~(1ul << destinationSquare);
     state.Bitboards[Board::Rook] &= ~(1ul << destinationSquare);

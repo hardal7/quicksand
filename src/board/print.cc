@@ -17,7 +17,11 @@ void printBoard(const GameState &state) {
       if (state.Bitboards[piece] & (1ul << square)) {
         auto pair = Board::PieceToChars.find(piece);
         if (pair != Board::PieceToChars.end()) {
-          board += pair->second;
+          if ((1ul << square) & state.Bitboards[Board::White]) {
+            board += std::toupper(pair->second);
+          } else {
+            board += pair->second;
+          }
           pieceOnSquare = true;
         }
       }

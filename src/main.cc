@@ -4,9 +4,9 @@
 #include "move/move.h"
 #include "search/search.h"
 #include "types.h"
-#include <bitset>
 #include <iostream>
 
+const int depth = 5;
 int main() {
   GameState state;
 
@@ -19,7 +19,7 @@ int main() {
 
     else if (req.Command == StartGame) {
       printBoard(state);
-      Move::Encoded bestMove = searchBestMove(state, 3);
+      Move::Encoded bestMove = searchBestMove(state, depth);
 
       handleUCI(Request{MakeMove, Move::annotation(bestMove)});
       Move::make(state, bestMove);
@@ -30,12 +30,9 @@ int main() {
     else if (req.Command == MakeMove) {
       Move::make(state, Move::encode(state, req.Move));
       printBoard(state);
-
-      std::cout << std::bitset<16>(Move::encode(state, req.Move)) << std::endl;
-
       std::cerr << "Made Move: " << req.Move << std::endl;
 
-      Move::Encoded bestMove = searchBestMove(state, 1);
+      Move::Encoded bestMove = searchBestMove(state, depth);
       handleUCI(Request{MakeMove, Move::annotation(bestMove)});
       Move::make(state, bestMove);
       printBoard(state);
