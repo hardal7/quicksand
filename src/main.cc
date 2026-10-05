@@ -1,15 +1,51 @@
 #include "board/fen.h"
 #include "board/print.h"
+#include "interface/uci.h"
 #include "move/move.h"
 #include "search/search.h"
 #include "types.h"
+#include <bitset>
 #include <iostream>
 
 int main() {
-  GameState state = loadFEN();
-  printBoard(state);
+  GameState state;
 
-  int depth = 3;
-  Move::Encoded bestMove = searchBestMove(state, depth);
-  std::cerr << "Best Move: " << Move::annotation(bestMove) << std::endl;
+  while (true) {
+    Request req = handleUCI();
+
+    if (req.Command == NewGame) {
+      state = loadFEN();
+    }
+
+    else if (req.Command == StartGame) {
+      printBoard(state);
+      Move::Encoded bestMove = searchBestMove(state, 3);
+
+      handleUCI(Request{MakeMove, Move::annotation(bestMove)});
+      Move::make(state, bestMove);
+      printBoard(state);
+      std::cerr << "Best Move: " << Move::annotation(bestMove) << std::endl;
+    }
+
+    else if (req.Command == MakeMove) {
+      Move::make(state, Move::encode(state, req.Move));
+      printBoard(state);
+
+      std::cout << std::bitset<16>(Move::encode(state, req.Move)) << std::endl;
+
+      std::cerr << "Made Move: " << req.Move << std::endl;
+
+      Move::Encoded bestMove = searchBestMove(state, 1);
+      handleUCI(Request{MakeMove, Move::annotation(bestMove)});
+      Move::make(state, bestMove);
+      printBoard(state);
+      std::cerr << "Best Move: " << Move::annotation(bestMove) << std::endl;
+    }
+
+    else if (req.Command == Quit) {
+      break;
+    }
+  }
+
+  return 0;
 }

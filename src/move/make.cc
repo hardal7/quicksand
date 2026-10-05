@@ -65,8 +65,8 @@ std::optional<Board::Piece> Move::make(GameState &state, Encoded move) {
   }
   case Castle: {
     bool isShortCastle = (m.DestinationSquare - m.OriginSquare) == (Right * 2);
-    int originSquare = std::__countr_zero(friendlyCastlingRank & (isShortCastle ? Board::FileA : Board::FileH));
-    int destinationSquare = originSquare + (Right * 2 * (isShortCastle ? 1 : -1));
+    int originSquare = std::__countr_zero(friendlyCastlingRank & (isShortCastle ? Board::FileH : Board::FileA));
+    int destinationSquare = originSquare + (Left * 2 * (isShortCastle ? 1 : -1));
 
     *friendlyPieces &= ~(1ul << originSquare);
     state.Bitboards[Board::Rook] &= ~(1ul << originSquare);
@@ -92,9 +92,11 @@ std::optional<Board::Piece> Move::make(GameState &state, Encoded move) {
   bool notMoved = (1ul << m.OriginSquare) & (state.WhiteToPlay ? Board::RankTwo : Board::RankSeven);
   if ((movedPiece == Board::Pawn) && notMoved) {
     state.enPassantSquare = m.DestinationSquare + (state.WhiteToPlay ? Up : Down);
+  } else {
+    state.enPassantSquare = 0;
   }
 
-  else if (movedPiece == Board::Rook) {
+  if (movedPiece == Board::Rook) {
     bool isShortCastleSquare = m.OriginSquare == std::__countr_zero(friendlyCastlingRank & Board::FileH);
     bool isLongCastleSquare = m.OriginSquare == std::__countr_zero(friendlyCastlingRank & Board::FileA);
 
@@ -172,8 +174,8 @@ void Move::unmake(GameState &state, Move::Encoded move, std::optional<Board::Pie
   }
   case Castle: {
     bool isShortCastle = (m.DestinationSquare - m.OriginSquare) == (Right * 2);
-    int originSquare = std::__countr_zero(friendlyCastlingRank & (isShortCastle ? Board::FileA : Board::FileH));
-    int destinationSquare = originSquare + (Right * 2 * (isShortCastle ? 1 : -1));
+    int originSquare = std::__countr_zero(friendlyCastlingRank & (isShortCastle ? Board::FileH : Board::FileA));
+    int destinationSquare = originSquare + (Left * 2 * (isShortCastle ? 1 : -1));
 
     *friendlyPieces &= ~(1ul << destinationSquare);
     state.Bitboards[Board::Rook] &= ~(1ul << destinationSquare);

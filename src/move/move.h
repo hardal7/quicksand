@@ -27,8 +27,8 @@ enum PromotionPiece { Knight, Bishop, Rook, Queen };
 const std::array<PromotionPiece, 4> PromotionPieces = {Knight, Bishop, Rook, Queen};
 
 struct Readable {
-  int OriginSquare;
-  int DestinationSquare;
+  int OriginSquare = 0;
+  int DestinationSquare = 0;
   Move::Flag Flag = NoFlag;
   Move::PromotionPiece PromotionPiece = Knight;
 };
@@ -41,6 +41,7 @@ struct List {
 };
 
 Encoded encode(Readable move);
+Encoded encode(GameState state, std::string move);
 Readable decode(Encoded move);
 std::string annotation(Readable move);
 std::string annotation(Encoded move);

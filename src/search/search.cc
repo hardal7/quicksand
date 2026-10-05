@@ -47,7 +47,6 @@ Move::Encoded searchBestMove(GameState &state, int depth) {
     auto captured = Move::make(state, m);
 
     eval = searchPosition(state, depth - 1, nodes);
-    std::cerr << "Move: " << Move::annotation(m) << " Eval: " << eval << std::endl;
 
     if (white ? (eval > bestEval) : (eval < bestEval)) {
       bestEval = eval;
