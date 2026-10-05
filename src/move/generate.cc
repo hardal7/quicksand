@@ -161,6 +161,26 @@ void kingMoves(const GameState &state, int square, Move::List &movesList) {
       Move::insert(movesList, Move::Readable{square, destinationSquare});
     }
   }
+
+  Board::bitboard allPieces = *friendlyPieces(state) | *opponentPieces(state);
+  Board::bitboard friendlyCastlingRank = (state.WhiteToPlay ? Board::RankOne : Board::RankEight);
+  Board::bitboard friendlyRooks = (*friendlyPieces(state) & state.Bitboards[Board::Rook]);
+  const std::array<int, 2> kingCastleMoves = {Move::Left * 3, Move::Right * 2};
+
+  bool kingNotMoved = (1ul << square) & (Board::FileE & friendlyCastlingRank);
+  bool shortRookNotMoved = friendlyRooks & (Board::FileH & friendlyCastlingRank);
+  bool longRookNotMoved = friendlyRooks & (Board::FileA & friendlyCastlingRank);
+  bool shortCastleObstructed = allPieces & (friendlyCastlingRank & (Board::FileF | Board::FileG));
+  bool longCastleObstructed = allPieces & (friendlyCastlingRank & (Board::FileB | Board::FileC | Board::FileD));
+
+  for (int type = 0; type < 2; type++) {
+    int destinationSquare = square + kingCastleMoves[type];
+
+    bool validCastleState = kingNotMoved && (type ? shortRookNotMoved : longRookNotMoved);
+    if (validCastleState && !(type ? shortCastleObstructed : longCastleObstructed)) {
+      Move::insert(movesList, Move::Readable{square, destinationSquare, Move::Castle});
+    }
+  }
 }
 
 Move::List generateMoves(const GameState &state) {
