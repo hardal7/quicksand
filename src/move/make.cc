@@ -167,7 +167,7 @@ void Move::unmake(GameState &state, Move::Encoded move, std::optional<Board::Pie
       break;
     }
 
-    state.Bitboards[piece] &= ~(1ul << m.DestinationSquare);
+    state.Bitboards[piece] &= ~(1ul << m.OriginSquare);
 
     break;
   }
