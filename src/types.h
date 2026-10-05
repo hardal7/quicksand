@@ -13,5 +13,11 @@ struct GameState {
   bool BlackShortCastle = true;
   bool BlackLongCastle = true;
 
+  bool WhiteShortCastlePrev = true;
+  bool WhiteLongCastlePrev = true;
+  bool BlackShortCastlePrev = true;
+  bool BlackLongCastlePrev = true;
+
   int enPassantSquare = 0;
+  int enPassantSquarePrev = 0;
 };

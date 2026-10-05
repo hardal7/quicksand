@@ -13,37 +13,24 @@ Encoded Move::encode(Readable move) {
   return encoded;
 }
 
-std::string Move::decode(Encoded move) {
-  std::string decoded = "";
+Readable Move::decode(Encoded move) {
+  Readable decoded;
 
-  int originSquare = (move & OriginSquareMask) >> OriginSquareOffset;
-  int destinationSquare = (move & DestinationSquareMask) >> DestinationSquareOffset;
-  int flag = (move & FlagMask) >> FlagOffset;
-  int promotionPiece = (move & PromotionPieceMask) >> PromotionPieceOffset;
-
-  decoded += Board::squareToPosition(originSquare);
-  decoded += Board::squareToPosition(destinationSquare);
-
-  if (flag == Promotion) {
-    char c;
-    switch (promotionPiece) {
-    case Knight:
-      c = 'n';
-      break;
-    case Bishop:
-      c = 'b';
-      break;
-    case Rook:
-      c = 'r';
-      break;
-    case Queen:
-      c = 'q';
-      break;
-    }
-    decoded += c;
-  }
+  decoded.OriginSquare = (move & OriginSquareMask) >> OriginSquareOffset;
+  decoded.DestinationSquare = (move & DestinationSquareMask) >> DestinationSquareOffset;
+  decoded.Flag = static_cast<Flag>((move & FlagMask) >> FlagOffset);
+  decoded.PromotionPiece = static_cast<PromotionPiece>((move & PromotionPieceMask) >> PromotionPieceOffset);
 
   return decoded;
+}
+
+std::string Move::annotation(Readable move) {
+  return Board::squareToPosition(move.OriginSquare) + Board::squareToPosition(move.DestinationSquare);
+}
+
+std::string Move::annotation(Encoded move) {
+  Readable m = decode(move);
+  return Board::squareToPosition(m.OriginSquare) + Board::squareToPosition(m.DestinationSquare);
 }
 
 void Move::insert(List &movesList, Readable m) {

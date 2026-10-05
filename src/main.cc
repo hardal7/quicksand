@@ -3,9 +3,10 @@
 #include "move/generate.h"
 #include "move/move.h"
 #include "types.h"
-#include <iostream>
 
 int main() {
   GameState state = loadFEN();
+  printBoard(state);
+
   Move::List movesList = generateMoves(state);
 }

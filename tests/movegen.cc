@@ -17,7 +17,7 @@ TEST(MoveGenerationTest, Castling) {
 
   bool shortCastle = false, longCastle = false;
   for (int i = 0; i < movesList.length; i++) {
-    std::string m = Move::decode(movesList.list[i]);
+    std::string m = Move::annotation(movesList.list[i]);
     if (m == "e1g1") {
       shortCastle = true;
     } else if (m == "e1b1") {
