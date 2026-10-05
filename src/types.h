@@ -5,7 +5,7 @@
 #include <map>
 
 struct GameState {
-  Board::bitboard Bitboards[Board::Pieces + Board::Colors] = {0};
+  Board::bitboard Bitboards[Board::TotalPieces + Board::TotalColors] = {0};
   bool WhiteToPlay = true;
 
   bool WhiteShortCastle = true;

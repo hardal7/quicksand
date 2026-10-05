@@ -2,6 +2,8 @@
 #include "../types.h"
 #include "move.h"
 
+using namespace Move;
+
 const Board::bitboard *friendlyPieces(const GameState &state) {
   return &state.Bitboards[state.WhiteToPlay ? Board::White : Board::Black];
 }
@@ -9,52 +11,52 @@ const Board::bitboard *opponentPieces(const GameState &state) {
   return &state.Bitboards[state.WhiteToPlay ? Board::Black : Board::White];
 }
 
-void pawnMoves(const GameState &state, int square, Move::List &movesList) {
+void pawnMoves(const GameState &state, int square, List &movesList) {
   const Board::bitboard allPieces = *friendlyPieces(state) | *opponentPieces(state);
   int direction = state.WhiteToPlay ? 1 : -1;
 
   bool isPromoting = (1ul << square) & (state.WhiteToPlay ? Board::RankSeven : Board::RankTwo);
-  Move::Flag promotionFlag = Move::NoFlag;
+  Flag promotionFlag = NoFlag;
   if (isPromoting) {
-    promotionFlag = Move::Promotion;
+    promotionFlag = Promotion;
   }
 
-  int destinationSquare = square + Move::Up * direction;
+  int destinationSquare = square + Up * direction;
   bool destinationOccupied = allPieces & (1ul << destinationSquare);
   if (!destinationOccupied) {
-    Move::insert(movesList, Move::Readable{square, destinationSquare, promotionFlag});
+    insert(movesList, Readable{square, destinationSquare, promotionFlag});
 
     bool notMoved = (1ul << square) & (state.WhiteToPlay ? Board::RankTwo : Board::RankSeven);
-    int destinationSquare = square + Move::Up * 2 * direction;
+    int destinationSquare = square + Up * 2 * direction;
     bool destinationOccupied = allPieces & (1ul << destinationSquare);
     if (!destinationOccupied && notMoved) {
-      Move::insert(movesList, Move::Readable{square, destinationSquare, promotionFlag});
+      insert(movesList, Readable{square, destinationSquare, promotionFlag});
     }
   }
 
-  const std::array<int, 2> captureMoves = {Move::Up + Move::Left, Move::Up + Move::Right};
+  const std::array<int, 2> captureMoves = {Up + Left, Up + Right};
   for (auto move : captureMoves) {
     int destinationSquare = square + move * direction;
     bool opponentOnDestination = *opponentPieces(state) & state.enPassantSquare & (1ul << destinationSquare);
     if (opponentOnDestination) {
-      Move::Flag enPassantFlag = Move::NoFlag;
+      Flag enPassantFlag = NoFlag;
       if (destinationSquare == state.enPassantSquare) {
-        enPassantFlag = Move::EnPassant;
-        Move::insert(movesList, Move::Readable{square, destinationSquare, enPassantFlag});
+        enPassantFlag = EnPassant;
+        insert(movesList, Readable{square, destinationSquare, enPassantFlag});
       } else {
-        Move::insert(movesList, Move::Readable{square, destinationSquare, promotionFlag});
+        insert(movesList, Readable{square, destinationSquare, promotionFlag});
       }
     }
   }
 }
 
-void knightMoves(const GameState &state, int square, Move::List &movesList) {
+void knightMoves(const GameState &state, int square, List &movesList) {
   // clang-format off
   const std::array<int, 8> knightMoves = {
-      Move::Up * 2 + Move::Left, Move::Up * 2 + Move::Right,
-      Move::Down * 2 + Move::Left, Move::Down * 2 + Move::Right,
-      Move::Left * 2 + Move::Up, Move::Left * 2 + Move::Down,
-      Move::Right * 2 + Move::Up,  Move::Right * 2 + Move::Down,
+      Up * 2 + Left, Up * 2 + Right,
+      Down * 2 + Left, Down * 2 + Right,
+      Left * 2 + Up, Left * 2 + Down,
+      Right * 2 + Up,  Right * 2 + Down,
   };
   // clang-format on
 
@@ -62,14 +64,13 @@ void knightMoves(const GameState &state, int square, Move::List &movesList) {
     int destinationSquare = square + move;
     bool friendlyOnDestination = *friendlyPieces(state) & (1ul << destinationSquare);
     if (!friendlyOnDestination) {
-      Move::insert(movesList, Move::Readable{square, destinationSquare});
+      insert(movesList, Readable{square, destinationSquare});
     }
   }
 }
 
-void bishopMoves(const GameState &state, int square, Move::List &movesList) {
-  const std::array<int, 4> bishopMoves = {Move::Up + Move::Right, Move::Up + Move::Left, Move::Down + Move::Left,
-                                          Move::Down + Move::Right};
+void bishopMoves(const GameState &state, int square, List &movesList) {
+  const std::array<int, 4> bishopMoves = {Up + Right, Up + Left, Down + Left, Down + Right};
 
   for (auto move : bishopMoves) {
     for (int magnitude = 1; magnitude <= Board::RankSquares; magnitude++) {
@@ -93,17 +94,17 @@ void bishopMoves(const GameState &state, int square, Move::List &movesList) {
       if (friendlyOnDestination) {
         break;
       } else if (opponentOnDestination) {
-        Move::insert(movesList, Move::Readable{square, destinationSquare});
+        insert(movesList, Readable{square, destinationSquare});
         break;
       } else {
-        Move::insert(movesList, Move::Readable{square, destinationSquare});
+        insert(movesList, Readable{square, destinationSquare});
       }
     }
   }
 }
 
-void rookMoves(const GameState &state, int square, Move::List &movesList) {
-  const std::array<int, 4> rookMoves = {Move::Up, Move::Down, Move::Left, Move::Right};
+void rookMoves(const GameState &state, int square, List &movesList) {
+  const std::array<int, 4> rookMoves = {Up, Down, Left, Right};
 
   for (auto move : rookMoves) {
     for (int magnitude = 1; magnitude <= Board::RankSquares; magnitude++) {
@@ -127,45 +128,39 @@ void rookMoves(const GameState &state, int square, Move::List &movesList) {
       if (friendlyOnDestination) {
         break;
       } else if (opponentOnDestination) {
-        Move::insert(movesList, Move::Readable{square, destinationSquare});
+        insert(movesList, Readable{square, destinationSquare});
         break;
       } else {
-        Move::insert(movesList, Move::Readable{square, destinationSquare});
+        insert(movesList, Readable{square, destinationSquare});
       }
     }
   }
 }
 
-void queenMoves(const GameState &state, int square, Move::List &movesList) {
+void queenMoves(const GameState &state, int square, List &movesList) {
   rookMoves(state, square, movesList);
   bishopMoves(state, square, movesList);
 }
 
-void kingMoves(const GameState &state, int square, Move::List &movesList) {
+void kingMoves(const GameState &state, int square, List &movesList) {
   const std::array<int, 8> kingMoves = {
-      Move::Up,
-      Move::Down,
-      Move::Left,
-      Move::Right,
+      Up,        Down,       Left,        Right,
 
-      Move::Up + Move::Left,
-      Move::Up + Move::Right,
-      Move::Down + Move::Left,
-      Move::Down + Move::Right,
+      Up + Left, Up + Right, Down + Left, Down + Right,
   };
 
   for (auto move : kingMoves) {
     int destinationSquare = square + move;
     bool friendlyOnDestination = *friendlyPieces(state) & (1ul << destinationSquare);
     if (!friendlyOnDestination) {
-      Move::insert(movesList, Move::Readable{square, destinationSquare});
+      insert(movesList, Readable{square, destinationSquare});
     }
   }
 
   Board::bitboard allPieces = *friendlyPieces(state) | *opponentPieces(state);
   Board::bitboard friendlyCastlingRank = (state.WhiteToPlay ? Board::RankOne : Board::RankEight);
   Board::bitboard friendlyRooks = (*friendlyPieces(state) & state.Bitboards[Board::Rook]);
-  const std::array<int, 2> kingCastleMoves = {Move::Left * 3, Move::Right * 2};
+  const std::array<int, 2> kingCastleMoves = {Left * 3, Right * 2};
 
   bool kingNotMoved = (1ul << square) & (Board::FileE & friendlyCastlingRank);
   bool shortRookNotMoved = friendlyRooks & (Board::FileH & friendlyCastlingRank);
@@ -178,13 +173,13 @@ void kingMoves(const GameState &state, int square, Move::List &movesList) {
 
     bool validCastleState = kingNotMoved && (type ? shortRookNotMoved : longRookNotMoved);
     if (validCastleState && !(type ? shortCastleObstructed : longCastleObstructed)) {
-      Move::insert(movesList, Move::Readable{square, destinationSquare, Move::Castle});
+      insert(movesList, Readable{square, destinationSquare, Castle});
     }
   }
 }
 
-Move::List generateMoves(const GameState &state) {
-  Move::List movesList;
+List generate(const GameState &state) {
+  List movesList;
 
   for (int square = 0; square < Board::TotalSquares; square++) {
     for (Board::Piece piece = Board::Pawn; piece <= Board::King; piece++) {

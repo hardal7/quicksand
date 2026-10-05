@@ -1,5 +1,6 @@
 #include "../src/board/fen.h"
 #include "../src/move/generate.h"
+#include "../src/move/make.h"
 #include "../src/move/move.h"
 #include "../src/types.h"
 #include <gtest/gtest.h>
@@ -9,6 +10,25 @@ TEST(MoveGenerationTest, Perft1) {
   Move::List movesList = generateMoves(state);
 
   EXPECT_EQ(movesList.length, 20);
+}
+
+TEST(MoveGenerationTest, Perft2) {
+  GameState state = loadFEN();
+
+  int positions = 0;
+  Move::List movesList = generateMoves(state);
+
+  for (int i = 0; i < movesList.length; i++) {
+    Move::Encoded m = movesList.list[i];
+    auto capturedPiece = makeMove(state, m);
+
+    Move::List generatedList = generateMoves(state);
+    positions += generatedList.length;
+
+    unmakeMove(state, m, capturedPiece);
+  }
+
+  EXPECT_EQ(positions, 400);
 }
 
 TEST(MoveGenerationTest, Castling) {

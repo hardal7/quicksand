@@ -3,11 +3,13 @@
 #include "move.h"
 #include <optional>
 
-std::optional<Board::Piece> makeMove(GameState &state, Move::Encoded move) {
+using namespace Move;
+
+std::optional<Board::Piece> make(GameState &state, Encoded move) {
   Board::bitboard *friendlyPieces = &state.Bitboards[state.WhiteToPlay ? Board::White : Board::Black];
   Board::bitboard *opponentPieces = &state.Bitboards[state.WhiteToPlay ? Board::Black : Board::White];
 
-  Move::Readable m = Move::decode(move);
+  Readable m = decode(move);
 
   std::optional<Board::Piece> capturedPiece = std::nullopt;
   for (Board::Piece piece = Board::Pawn; piece <= Board::King; piece++) {
@@ -37,23 +39,23 @@ std::optional<Board::Piece> makeMove(GameState &state, Move::Encoded move) {
 
   Board::bitboard friendlyCastlingRank = (state.WhiteToPlay ? Board::RankOne : Board::RankEight);
   switch (m.Flag) {
-  case Move::NoFlag:
+  case NoFlag:
     break;
-  case Move::Promotion: {
+  case Promotion: {
     state.Bitboards[Board::Pawn] &= ~(1ul << m.DestinationSquare);
 
     Board::Index piece;
     switch (m.PromotionPiece) {
-    case Move::Knight:
+    case Knight:
       piece = Board::Knight;
       break;
-    case Move::Bishop:
+    case Bishop:
       piece = Board::Bishop;
       break;
-    case Move::Rook:
+    case Rook:
       piece = Board::Rook;
       break;
-    case Move::Queen:
+    case Queen:
       piece = Board::Queen;
       break;
     }
@@ -61,10 +63,10 @@ std::optional<Board::Piece> makeMove(GameState &state, Move::Encoded move) {
 
     break;
   }
-  case Move::Castle: {
-    bool isShortCastle = (m.DestinationSquare - m.OriginSquare) == (Move::Right * 2);
+  case Castle: {
+    bool isShortCastle = (m.DestinationSquare - m.OriginSquare) == (Right * 2);
     int originSquare = std::__countr_zero(friendlyCastlingRank & (isShortCastle ? Board::FileA : Board::FileH));
-    int destinationSquare = originSquare + (Move::Right * 2 * (isShortCastle ? 1 : -1));
+    int destinationSquare = originSquare + (Right * 2 * (isShortCastle ? 1 : -1));
 
     *friendlyPieces &= ~(1ul << originSquare);
     state.Bitboards[Board::Rook] &= ~(1ul << originSquare);
@@ -73,8 +75,8 @@ std::optional<Board::Piece> makeMove(GameState &state, Move::Encoded move) {
 
     break;
   }
-  case Move::EnPassant: {
-    int captureSquare = m.DestinationSquare + (state.WhiteToPlay ? Move::Down : Move::Up);
+  case EnPassant: {
+    int captureSquare = m.DestinationSquare + (state.WhiteToPlay ? Down : Up);
     *opponentPieces &= ~(1ul << captureSquare);
     state.Bitboards[Board::Pawn] &= ~(1ul << captureSquare);
     break;
@@ -89,7 +91,7 @@ std::optional<Board::Piece> makeMove(GameState &state, Move::Encoded move) {
 
   bool notMoved = (1ul << m.OriginSquare) & (state.WhiteToPlay ? Board::RankTwo : Board::RankSeven);
   if ((movedPiece == Board::Pawn) && notMoved) {
-    state.enPassantSquare = m.DestinationSquare + (state.WhiteToPlay ? Move::Up : Move::Down);
+    state.enPassantSquare = m.DestinationSquare + (state.WhiteToPlay ? Up : Down);
   }
 
   else if (movedPiece == Board::Rook) {
@@ -112,13 +114,13 @@ std::optional<Board::Piece> makeMove(GameState &state, Move::Encoded move) {
   return capturedPiece;
 }
 
-void unmakeMove(GameState &state, Move::Encoded move, std::optional<Board::Piece> capturedPiece) {
+void unmake(GameState &state, Move::Encoded move, std::optional<Board::Piece> capturedPiece) {
   state.WhiteToPlay = !state.WhiteToPlay;
 
   Board::bitboard *friendlyPieces = &state.Bitboards[state.WhiteToPlay ? Board::White : Board::Black];
   Board::bitboard *opponentPieces = &state.Bitboards[state.WhiteToPlay ? Board::Black : Board::White];
 
-  Move::Readable m = Move::decode(move);
+  Readable m = Move::decode(move);
 
   Board::Piece movedPiece;
   for (Board::Piece piece = Board::Pawn; piece <= Board::King; piece++) {
@@ -134,8 +136,8 @@ void unmakeMove(GameState &state, Move::Encoded move, std::optional<Board::Piece
     }
   }
 
-  if (capturedPiece != std::nullopt) {
-    if (m.Flag != Move::EnPassant) {
+  if (capturedPiece.has_value()) {
+    if (m.Flag != EnPassant) {
       *opponentPieces |= 1ul << m.DestinationSquare;
       state.Bitboards[capturedPiece.value()] |= 1ul << m.DestinationSquare;
     }
@@ -143,23 +145,23 @@ void unmakeMove(GameState &state, Move::Encoded move, std::optional<Board::Piece
 
   Board::bitboard friendlyCastlingRank = (state.WhiteToPlay ? Board::RankOne : Board::RankEight);
   switch (m.Flag) {
-  case Move::NoFlag:
+  case NoFlag:
     break;
-  case Move::Promotion: {
+  case Promotion: {
     state.Bitboards[Board::Pawn] |= 1ul << m.OriginSquare;
 
     Board::Index piece;
     switch (m.PromotionPiece) {
-    case Move::Knight:
+    case Knight:
       piece = Board::Knight;
       break;
-    case Move::Bishop:
+    case Bishop:
       piece = Board::Bishop;
       break;
-    case Move::Rook:
+    case Rook:
       piece = Board::Rook;
       break;
-    case Move::Queen:
+    case Queen:
       piece = Board::Queen;
       break;
     }
@@ -168,10 +170,10 @@ void unmakeMove(GameState &state, Move::Encoded move, std::optional<Board::Piece
 
     break;
   }
-  case Move::Castle: {
-    bool isShortCastle = (m.DestinationSquare - m.OriginSquare) == (Move::Right * 2);
+  case Castle: {
+    bool isShortCastle = (m.DestinationSquare - m.OriginSquare) == (Right * 2);
     int originSquare = std::__countr_zero(friendlyCastlingRank & (isShortCastle ? Board::FileA : Board::FileH));
-    int destinationSquare = originSquare + (Move::Right * 2 * (isShortCastle ? 1 : -1));
+    int destinationSquare = originSquare + (Right * 2 * (isShortCastle ? 1 : -1));
 
     *friendlyPieces &= ~(1ul << destinationSquare);
     state.Bitboards[Board::Rook] &= ~(1ul << destinationSquare);
@@ -180,8 +182,8 @@ void unmakeMove(GameState &state, Move::Encoded move, std::optional<Board::Piece
 
     break;
   }
-  case Move::EnPassant: {
-    int captureSquare = m.DestinationSquare + (state.WhiteToPlay ? Move::Down : Move::Up);
+  case EnPassant: {
+    int captureSquare = m.DestinationSquare + (state.WhiteToPlay ? Down : Up);
     *opponentPieces |= 1ul << captureSquare;
     state.Bitboards[Board::Pawn] |= 1ul << captureSquare;
 

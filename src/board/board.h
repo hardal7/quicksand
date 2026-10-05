@@ -7,9 +7,8 @@
 namespace Board {
 using bitboard = uint64_t;
 
-const int Pieces = 6;
-const int Colors = 2;
-
+const int TotalPieces = 6;
+const int TotalColors = 2;
 const int TotalSquares = 64;
 const int FileSquares = 8;
 const int RankSquares = 8;

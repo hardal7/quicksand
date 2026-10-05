@@ -1,10 +1,12 @@
 #pragma once
 
 #include "../board/board.h"
+#include "../types.h"
 #include <algorithm>
 #include <array>
 #include <cstdint>
 #include <map>
+#include <optional>
 
 namespace Move {
 // clang-format off
@@ -31,17 +33,21 @@ struct Readable {
   Move::PromotionPiece PromotionPiece = Knight;
 };
 
-Encoded encode(Readable move);
-Readable decode(Encoded move);
-std::string annotation(Readable move);
-std::string annotation(Encoded move);
-
 const int NoMove = 0;
 const int MaxMoves = 256;
 struct List {
   std::array<Encoded, MaxMoves> list = {NoMove};
   int length = 0;
 };
+
+Encoded encode(Readable move);
+Readable decode(Encoded move);
+std::string annotation(Readable move);
+std::string annotation(Encoded move);
+
+List generate(const GameState &state);
+std::optional<Board::Piece> make(GameState &state, Move::Encoded move);
+void unmake(GameState &state, Move::Encoded move, std::optional<Board::Piece> capturedPiece);
 
 void insert(List &list, Readable m);
 
