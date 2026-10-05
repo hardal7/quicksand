@@ -3,4 +3,4 @@
 #include "../types.h"
 #include "move.h"
 
-void generateMoves(const GameState &state, Move::List &movesList);
+Move::List generateMoves(const GameState &state);

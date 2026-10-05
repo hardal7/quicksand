@@ -32,6 +32,7 @@ struct Readable {
 };
 
 Encoded encode(Readable move);
+std::string decode(Encoded move);
 
 const int NoMove = 0;
 const int MaxMoves = 256;

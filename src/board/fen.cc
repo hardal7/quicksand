@@ -3,7 +3,9 @@
 #include <sstream>
 #include <string>
 
-void loadFEN(GameState &state, std::string fen) {
+GameState loadFEN(std::string fen) {
+  GameState state;
+
   std::istringstream in(fen);
   std::string pieces, colorToPlay, castlingRights, enPassantSquare, halfmoveClock, fullmoveNumber;
   in >> pieces >> colorToPlay >> castlingRights >> enPassantSquare >> halfmoveClock >> fullmoveNumber;
@@ -59,4 +61,6 @@ void loadFEN(GameState &state, std::string fen) {
   if (enPassantSquare != "-") {
     state.enPassantSquare = Board::squareFromPosition(enPassantSquare);
   }
+
+  return state;
 }

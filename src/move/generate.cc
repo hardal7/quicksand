@@ -24,9 +24,10 @@ void pawnMoves(const GameState &state, int square, Move::List &movesList) {
   if (!destinationOccupied) {
     Move::insert(movesList, Move::Readable{square, destinationSquare, promotionFlag});
 
+    bool notMoved = (1ul << square) & (state.WhiteToPlay ? Board::RankTwo : Board::RankSeven);
     int destinationSquare = square + Move::Up * 2 * direction;
     bool destinationOccupied = allPieces & (1ul << destinationSquare);
-    if (!destinationOccupied) {
+    if (!destinationOccupied && notMoved) {
       Move::insert(movesList, Move::Readable{square, destinationSquare, promotionFlag});
     }
   }
@@ -162,7 +163,9 @@ void kingMoves(const GameState &state, int square, Move::List &movesList) {
   }
 }
 
-void generateMoves(const GameState &state, Move::List &movesList) {
+Move::List generateMoves(const GameState &state) {
+  Move::List movesList;
+
   for (int square = 0; square < Board::TotalSquares; square++) {
     for (Board::Piece piece = Board::Pawn; piece <= Board::King; piece++) {
       if (state.Bitboards[piece] & *friendlyPieces(state) & (1ul << square)) {
@@ -189,4 +192,6 @@ void generateMoves(const GameState &state, Move::List &movesList) {
       }
     }
   }
+
+  return movesList;
 }

@@ -5,10 +5,8 @@
 #include <gtest/gtest.h>
 
 TEST(MoveGenerationTest, Perft1) {
-  GameState state;
-  loadFEN(state);
-  Move::List movesList;
-  generateMoves(state, movesList);
+  GameState state = loadFEN();
+  Move::List movesList = generateMoves(state);
 
   EXPECT_EQ(movesList.length, 20);
 }
