@@ -178,7 +178,7 @@ void kingMoves(const GameState &state, int square, List &movesList) {
   }
 }
 
-List generate(const GameState &state) {
+List Move::generate(const GameState &state) {
   List movesList;
 
   for (int square = 0; square < Board::TotalSquares; square++) {

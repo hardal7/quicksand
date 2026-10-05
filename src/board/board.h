@@ -14,7 +14,7 @@ const int FileSquares = 8;
 const int RankSquares = 8;
 
 using Piece = int;
-enum Index : Piece { Pawn, Knight, Bishop, Rook, Queen, King, White, Black };
+enum Index : Piece { Pawn, Knight, Bishop, Rook, Queen, King, White, Black, None };
 
 const std::map<char, Piece> PieceFromChars = {
     {'p', Pawn}, {'n', Knight}, {'b', Bishop}, {'r', Rook}, {'q', Queen}, {'k', King},

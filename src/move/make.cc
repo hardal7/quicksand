@@ -5,7 +5,7 @@
 
 using namespace Move;
 
-std::optional<Board::Piece> make(GameState &state, Encoded move) {
+std::optional<Board::Piece> Move::make(GameState &state, Encoded move) {
   Board::bitboard *friendlyPieces = &state.Bitboards[state.WhiteToPlay ? Board::White : Board::Black];
   Board::bitboard *opponentPieces = &state.Bitboards[state.WhiteToPlay ? Board::Black : Board::White];
 
@@ -23,7 +23,7 @@ std::optional<Board::Piece> make(GameState &state, Encoded move) {
     }
   }
 
-  Board::Piece movedPiece;
+  Board::Piece movedPiece = Board::None;
   for (Board::Piece piece = Board::Pawn; piece <= Board::King; piece++) {
     if (*friendlyPieces & state.Bitboards[piece] & (1ul << m.OriginSquare)) {
       movedPiece = piece;
@@ -44,7 +44,7 @@ std::optional<Board::Piece> make(GameState &state, Encoded move) {
   case Promotion: {
     state.Bitboards[Board::Pawn] &= ~(1ul << m.DestinationSquare);
 
-    Board::Index piece;
+    Board::Index piece = Board::None;
     switch (m.PromotionPiece) {
     case Knight:
       piece = Board::Knight;
@@ -114,7 +114,7 @@ std::optional<Board::Piece> make(GameState &state, Encoded move) {
   return capturedPiece;
 }
 
-void unmake(GameState &state, Move::Encoded move, std::optional<Board::Piece> capturedPiece) {
+void Move::unmake(GameState &state, Move::Encoded move, std::optional<Board::Piece> capturedPiece) {
   state.WhiteToPlay = !state.WhiteToPlay;
 
   Board::bitboard *friendlyPieces = &state.Bitboards[state.WhiteToPlay ? Board::White : Board::Black];
@@ -150,7 +150,7 @@ void unmake(GameState &state, Move::Encoded move, std::optional<Board::Piece> ca
   case Promotion: {
     state.Bitboards[Board::Pawn] |= 1ul << m.OriginSquare;
 
-    Board::Index piece;
+    Board::Index piece = Board::Pawn;
     switch (m.PromotionPiece) {
     case Knight:
       piece = Board::Knight;

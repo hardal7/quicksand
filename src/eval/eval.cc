@@ -26,7 +26,7 @@ int evaluatePosition(const GameState &state) {
         eval += (color ? (endgame ? whiteEndgameTables : whiteTables)
                        : (endgame ? blackEndgameTables : blackTables))[piece][square] *
                 (color ? 1 : -1);
-        board ^= (1ul << square);
+        board &= ~(1ul << square);
       }
     }
   }
