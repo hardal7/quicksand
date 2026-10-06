@@ -8,7 +8,7 @@
 const int INFINITY = 1'000'000;
 const int TIMEOUT = INT_MAX;
 
-int searchPosition(GameState state, int depth, int &nodes, const std::chrono::steady_clock::time_point &deadline,
+int searchPosition(GameState &state, int depth, int &nodes, const std::chrono::steady_clock::time_point &deadline,
                    int alpha = -INFINITY, int beta = INFINITY) {
   if (std::chrono::steady_clock::now() >= deadline) {
     return TIMEOUT;
@@ -56,6 +56,9 @@ Move::Encoded searchBestMove(GameState &state, int timeSeconds) {
   Move::List moves = Move::generate(state);
 
   int nodes = 0;
+  int searchedDepth = 0;
+  int score = 0;
+
   for (int depth = 1; depth < INFINITY; depth++) {
     int bestEval = maximizing ? -INFINITY : INFINITY;
     int eval = bestEval;
@@ -90,11 +93,14 @@ Move::Encoded searchBestMove(GameState &state, int timeSeconds) {
 
     if (std::chrono::steady_clock::now() < deadline) {
       bestMove = bestMoveCandidate;
+      searchedDepth = depth;
+      score = bestEval / 100;
     } else {
       break;
     }
   }
 
-  std::cerr << std::endl << "Searched: " << nodes << " nodes" << std::endl;
+  std::cout << "info " << "depth " << searchedDepth << " nodes " << nodes << " time " << timeSeconds << " nps "
+            << nodes / timeSeconds << " score cp " << score << std::endl;
   return bestMove;
 }
