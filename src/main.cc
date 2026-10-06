@@ -6,9 +6,9 @@
 #include "types.h"
 #include <iostream>
 
-const int depth = 5;
 int main() {
   GameState state;
+  int moveTimeSeconds = 5;
 
   while (true) {
     Request req = handleUCI();
@@ -19,7 +19,7 @@ int main() {
 
     else if (req.Command == StartGame) {
       printBoard(state);
-      Move::Encoded bestMove = searchBestMove(state, depth);
+      Move::Encoded bestMove = searchBestMove(state, moveTimeSeconds);
 
       handleUCI(Request{MakeMove, Move::annotation(bestMove)});
       Move::make(state, bestMove);
@@ -28,11 +28,18 @@ int main() {
     }
 
     else if (req.Command == MakeMove) {
-      Move::make(state, Move::encode(state, req.Move));
-      printBoard(state);
-      std::cerr << "Made Move: " << req.Move << std::endl;
+      Request timereq = handleUCI();
+      if (timereq.Command == SetTime) {
+        SetTimeVal setTime = std::get<SetTimeVal>(timereq.Value);
+        moveTimeSeconds = state.WhiteToPlay ? setTime[0] : setTime[1];
+        std::cerr << "Set time to: " << moveTimeSeconds << std::endl;
+      }
 
-      Move::Encoded bestMove = searchBestMove(state, depth);
+      Move::make(state, Move::encode(state, std::get<std::string>(req.Value)));
+      printBoard(state);
+      std::cerr << "Made Move: " << std::get<std::string>(req.Value) << std::endl;
+
+      Move::Encoded bestMove = searchBestMove(state, moveTimeSeconds);
       handleUCI(Request{MakeMove, Move::annotation(bestMove)});
       Move::make(state, bestMove);
       printBoard(state);
