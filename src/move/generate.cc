@@ -39,10 +39,8 @@ void pawnMoves(const GameState &state, int square, List &movesList) {
     int destinationSquare = square + move * direction;
     bool opponentOnDestination = (*opponentPieces(state) | (1ul << state.enPassantSquare)) & (1ul << destinationSquare);
     if (opponentOnDestination) {
-      Flag enPassantFlag = NoFlag;
       if (destinationSquare == state.enPassantSquare) {
-        enPassantFlag = EnPassant;
-        insert(movesList, Readable{square, destinationSquare, enPassantFlag});
+        insert(movesList, Readable{square, destinationSquare, EnPassant});
       } else {
         insert(movesList, Readable{square, destinationSquare, promotionFlag});
       }

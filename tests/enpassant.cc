@@ -53,9 +53,11 @@ TEST(EnPassantTest, UnmakeMove) {
   auto captured = make(state, doublePawnMove);
   printBoard(state);
 
-  Encoded knightMove = encode(state, "g2h4");
-  auto capturedPiece = make(state, knightMove);
-  unmake(state, knightMove, capturedPiece);
+  {
+    Encoded knightMove = encode(state, "g2h4");
+    auto capturedPiece = make(state, knightMove);
+    unmake(state, knightMove, capturedPiece);
+  }
 
   List movesList = generate(state);
   Encoded enPassantMove = NoMove;

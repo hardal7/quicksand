@@ -41,7 +41,7 @@ TEST(CastleTest, GenerateObstructed) {
   EXPECT_EQ(longCastle, true);
 }
 
-TEST(CastleTest, MakeMove) {
+TEST(CastleTest, UnmakeMove) {
   Board::bitboard shortCastleOrigin = Board::FileH & Board::RankOne;
   Board::bitboard longCastleOrigin = Board::FileA & Board::RankOne;
   Board::bitboard shortCastleDestination = Board::FileF & Board::RankOne;
@@ -71,4 +71,27 @@ TEST(CastleTest, MakeMove) {
   printBoard(state);
   EXPECT_EQ(state.Bitboards[Board::Rook] & longCastleDestination, 0);
   EXPECT_NE(state.Bitboards[Board::Rook] & longCastleOrigin, 0);
+}
+
+TEST(CastleTest, UnmakeMovePrev) {
+  Board::bitboard shortCastleOrigin = Board::FileH & Board::RankOne;
+  Board::bitboard shortCastleDestination = Board::FileF & Board::RankOne;
+
+  GameState state = loadFEN("8/8/6n1/8/8/8/8/4K2R w K - 0 1");
+  printBoard(state);
+
+  Encoded shortCastle = encode(state, "e1g1");
+  auto captured = make(state, shortCastle);
+  printBoard(state);
+
+  {
+    Encoded knightMove = encode(state, "g6h8");
+    auto captured = make(state, knightMove);
+    unmake(state, knightMove, captured);
+  }
+
+  unmake(state, shortCastle, captured);
+  printBoard(state);
+  EXPECT_EQ(state.Bitboards[Board::Rook] & shortCastleDestination, 0);
+  EXPECT_NE(state.Bitboards[Board::Rook] & shortCastleOrigin, 0);
 }

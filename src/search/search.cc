@@ -8,7 +8,7 @@
 const int INFINITY = 1'000'000;
 const int TIMEOUT = INT_MAX;
 
-int searchPosition(GameState &state, int depth, int &nodes, const std::chrono::steady_clock::time_point &deadline,
+int searchPosition(GameState state, int depth, int &nodes, const std::chrono::steady_clock::time_point &deadline,
                    int alpha = -INFINITY, int beta = INFINITY) {
   if (std::chrono::steady_clock::now() >= deadline) {
     return TIMEOUT;
