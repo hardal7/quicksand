@@ -90,7 +90,8 @@ std::optional<Board::Piece> Move::make(GameState &state, Encoded move) {
   state.BlackLongCastlePrev = state.BlackLongCastle;
 
   bool notMoved = (1ul << m.OriginSquare) & (state.WhiteToPlay ? Board::RankTwo : Board::RankSeven);
-  if ((movedPiece == Board::Pawn) && notMoved) {
+  bool doublePawnMove = std::abs(m.OriginSquare - m.DestinationSquare) == (Down * 2);
+  if ((movedPiece == Board::Pawn) && notMoved && doublePawnMove) {
     state.enPassantSquare = m.DestinationSquare + (state.WhiteToPlay ? Down : Up);
   } else {
     state.enPassantSquare = 0;

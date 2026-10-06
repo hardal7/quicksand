@@ -1,3 +1,5 @@
+#pragma once
+
 #include "../board/board.h"
 #include "../types.h"
 #include <optional>

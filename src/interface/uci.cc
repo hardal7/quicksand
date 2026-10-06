@@ -57,12 +57,13 @@ void handleUCI(GameState &state, int &moveTimeSeconds) {
         in >> blackIncr;
     }
 
-    const int MIN_TIME_SECONDS = 1;
+    const int MIN_TIME_SECONDS = 5;
     const int MILLISECOND = 1'000;
 
     std::string colorTime = state.WhiteToPlay ? whiteTime : blackTime;
     std::string colorIncr = state.WhiteToPlay ? whiteIncr : blackIncr;
-    moveTimeSeconds = (std::stoi(whiteTime) / 20 + std::stoi(whiteIncr) / 2) / MILLISECOND;
+    int moveTimeCandidate = (std::stoi(whiteTime) / 20 + std::stoi(whiteIncr) / 2) / MILLISECOND;
+    moveTimeSeconds = std::max(moveTimeSeconds, moveTimeCandidate);
     moveTimeSeconds = std::max(moveTimeSeconds, MIN_TIME_SECONDS);
 
     Move::Encoded bestMove = searchBestMove(state, moveTimeSeconds);

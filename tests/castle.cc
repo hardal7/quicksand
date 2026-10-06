@@ -14,7 +14,7 @@ TEST(CastleTest, GeneratePossible) {
     std::string m = annotation(movesList.list[i]);
     if (m == "e1g1") {
       shortCastle = true;
-    } else if (m == "e1b1") {
+    } else if (m == "e1c1") {
       longCastle = true;
     }
   }
@@ -32,7 +32,7 @@ TEST(CastleTest, GenerateObstructed) {
     std::string m = annotation(movesList.list[i]);
     if (m == "e1g1") {
       shortCastle = true;
-    } else if (m == "e1b1") {
+    } else if (m == "e1c1") {
       longCastle = true;
     }
   }

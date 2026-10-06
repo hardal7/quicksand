@@ -1,6 +1,7 @@
 #include "../eval/eval.h"
 #include "../move/move.h"
 #include "../types.h"
+#include "order.h"
 #include <chrono>
 #include <climits>
 #include <iostream>
@@ -8,11 +9,12 @@
 const int INFINITY = 1'000'000;
 const int TIMEOUT = INT_MAX;
 
-int searchPosition(GameState &state, int depth, int &nodes, const std::chrono::steady_clock::time_point &deadline,
+int searchPosition(GameState state, int depth, int &nodes, const std::chrono::steady_clock::time_point &deadline,
                    int alpha = -INFINITY, int beta = INFINITY) {
   if (std::chrono::steady_clock::now() >= deadline) {
     return TIMEOUT;
   }
+
   if (depth == 0) {
     nodes++;
     return evaluatePosition(state);
@@ -22,9 +24,11 @@ int searchPosition(GameState &state, int depth, int &nodes, const std::chrono::s
   int bestEval = maximizing ? -INFINITY : INFINITY;
   int eval = bestEval;
 
-  Move::List moves = Move::generate(state);
+  Move::List unorderedMoves = Move::generate(state);
+  OrderedList moves = orderMoves(state, unorderedMoves);
+
   for (int i = 0; i < moves.length; i++) {
-    Move::Encoded m = moves.list[i];
+    Move::Encoded m = moves.list[i].Move;
     auto captured = Move::make(state, m);
 
     eval = searchPosition(state, depth - 1, nodes, deadline, alpha, beta);
@@ -53,7 +57,8 @@ Move::Encoded searchBestMove(GameState &state, int timeSeconds) {
   bool maximizing = state.WhiteToPlay;
 
   Move::Encoded bestMove = Move::NoMove, bestMoveCandidate = Move::NoMove;
-  Move::List moves = Move::generate(state);
+  Move::List unorderedMoves = Move::generate(state);
+  OrderedList moves = orderMoves(state, unorderedMoves);
 
   int nodes = 0;
   int searchedDepth = 0;
@@ -65,7 +70,7 @@ Move::Encoded searchBestMove(GameState &state, int timeSeconds) {
     int alpha = -INFINITY, beta = INFINITY;
 
     for (int i = 0; i < moves.length; i++) {
-      Move::Encoded m = moves.list[i];
+      Move::Encoded m = moves.list[i].Move;
       auto captured = Move::make(state, m);
 
       eval = searchPosition(state, depth - 1, nodes, deadline, alpha, beta);
@@ -94,7 +99,7 @@ Move::Encoded searchBestMove(GameState &state, int timeSeconds) {
     if (std::chrono::steady_clock::now() < deadline) {
       bestMove = bestMoveCandidate;
       searchedDepth = depth;
-      score = bestEval / 100;
+      score = bestEval / pieceValues.at(Board::Pawn);
     } else {
       break;
     }
