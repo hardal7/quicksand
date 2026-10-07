@@ -6,6 +6,11 @@
 
 #include <cstdint>
 
+#include "../move/move.h"
+#include <cstdint>
+
+Move::Encoded convertPolyglotMove(uint16_t);
+
 // Taken From Source:
 // https://hgm.nubati.net/book_format.html
 

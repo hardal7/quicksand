@@ -1,3 +1,4 @@
+#include "zobrist.h"
 #include "../interface/polyglot.h"
 #include "../move/move.h"
 #include "../types.h"
@@ -12,23 +13,23 @@ int popLSB(uint64_t &bb) {
 bool enPassantPossible(const GameState &state) {
   if (state.enPassantSquare != 0) {
     int direction = state.WhiteToPlay ? Move::Up : Move::Down;
-    Board::bitboard possiblePositions = (1ul << (direction + Move::Left)) | (1ul << (direction + Move::Left));
-    Board::bitboard opponentPieces = state.Bitboards[state.WhiteToPlay ? Board::White : Board::Black];
-    Board::bitboard aggressorMask = possiblePositions & opponentPieces;
+    Board::bitboard possiblePositions = (1ul << (state.enPassantSquare + direction + Move::Left)) |
+                                        (1ul << (state.enPassantSquare + direction + Move::Right));
+    Board::bitboard pawns = state.Bitboards[state.WhiteToPlay ? Board::White : Board::Black];
+    Board::bitboard adjacentPawns = pawns & possiblePositions;
 
-    return aggressorMask != 0;
+    return adjacentPawns != 0;
   }
 
   return false;
 }
 
-uint64_t ZobristKey(const GameState &state) {
-  uint64_t key = 0;
+Key GetZobristKey(const GameState &state) {
+  Key key = 0;
 
   uint64_t white = state.Bitboards[Board::White];
   uint64_t black = state.Bitboards[Board::Black];
 
-  const int WhitePieceOffset = 1;
   for (Board::Piece piece = Board::Pawn; piece < Board::TotalPieces; ++piece) {
     Board::bitboard whitePieces = state.Bitboards[piece] & white;
     while (whitePieces) {
@@ -37,6 +38,7 @@ uint64_t ZobristKey(const GameState &state) {
       int file = square % Board::FileSquares;
       int rank = (Board::RankSquares - 1) - (square / Board::RankSquares);
 
+      const int WhitePieceOffset = 1;
       int polyglotPiece = piece * 2 + WhitePieceOffset;
 
       key ^= Random64[(Board::TotalSquares * polyglotPiece) + (Board::RankSquares * rank) + file];

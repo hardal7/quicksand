@@ -1,10 +1,12 @@
 #include "../eval/eval.h"
 #include "../move/move.h"
 #include "../types.h"
+#include "opening.h"
 #include "order.h"
 #include <chrono>
 #include <climits>
 #include <iostream>
+#include <vector>
 
 const int INFINITY = 1'000'000;
 const int TIMEOUT = INT_MAX;
@@ -51,7 +53,14 @@ int searchPosition(GameState state, int depth, int &nodes, const std::chrono::st
   return bestEval;
 }
 
-Move::Encoded searchBestMove(GameState &state, int timeSeconds) {
+Move::Encoded searchBestMove(GameState state, int timeSeconds) {
+  std::vector<Move::Encoded> openings = searchOpening(state);
+  if (openings.size() != 0) {
+    Move::Encoded opening = openings[rand() % openings.size()];
+    std::cerr << std::endl << "Using opening move: " << Move::annotation(opening);
+    return opening;
+  }
+
   const auto deadline = std::chrono::steady_clock::now() + std::chrono::seconds(timeSeconds);
 
   bool maximizing = state.WhiteToPlay;
