@@ -62,7 +62,7 @@ void handleUCI(GameState &state, int &moveTimeSeconds) {
 
     std::string colorTime = state.WhiteToPlay ? whiteTime : blackTime;
     std::string colorIncr = state.WhiteToPlay ? whiteIncr : blackIncr;
-    int moveTimeCandidate = (std::stoi(whiteTime) / 20 + std::stoi(whiteIncr) / 2) / MILLISECOND;
+    int moveTimeCandidate = (std::stoi(whiteTime) / 40 + std::stoi(whiteIncr) / 2) / MILLISECOND;
     moveTimeSeconds = std::max(moveTimeSeconds, moveTimeCandidate);
     moveTimeSeconds = std::max(moveTimeSeconds, MIN_TIME_SECONDS);
 

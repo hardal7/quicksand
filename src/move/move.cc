@@ -48,7 +48,7 @@ Encoded Move::encode(GameState state, std::string move) {
 
   bool isKingMove = (1ul << m.OriginSquare) & state.Bitboards[Board::King];
   direction = m.DestinationSquare - m.OriginSquare;
-  bool isCastle = (direction == Left * 3) || (direction == Right * 2);
+  bool isCastle = (direction == Left * 2) || (direction == Right * 2);
   if (isKingMove && isCastle) {
     m.Flag = Castle;
   }

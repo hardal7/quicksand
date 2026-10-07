@@ -45,7 +45,7 @@ TEST(CastleTest, UnmakeMove) {
   Board::bitboard shortCastleOrigin = Board::FileH & Board::RankOne;
   Board::bitboard longCastleOrigin = Board::FileA & Board::RankOne;
   Board::bitboard shortCastleDestination = Board::FileF & Board::RankOne;
-  Board::bitboard longCastleDestination = Board::FileC & Board::RankOne;
+  Board::bitboard longCastleDestination = Board::FileD & Board::RankOne;
 
   GameState state = loadFEN("8/8/8/8/8/8/8/R3K2R w KQ - 0 1");
   printBoard(state);
@@ -61,7 +61,7 @@ TEST(CastleTest, UnmakeMove) {
   EXPECT_EQ(state.Bitboards[Board::Rook] & shortCastleDestination, 0);
   EXPECT_NE(state.Bitboards[Board::Rook] & shortCastleOrigin, 0);
 
-  Encoded longCastle = encode(state, "e1b1");
+  Encoded longCastle = encode(state, "e1c1");
   captured = make(state, longCastle);
   printBoard(state);
   EXPECT_NE(state.Bitboards[Board::Rook] & longCastleDestination, 0);

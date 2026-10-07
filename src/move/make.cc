@@ -66,7 +66,7 @@ std::optional<Board::Piece> Move::make(GameState &state, Encoded move) {
   case Castle: {
     bool isShortCastle = (m.DestinationSquare - m.OriginSquare) == (Right * 2);
     int originSquare = std::__countr_zero(friendlyCastlingRank & (isShortCastle ? Board::FileH : Board::FileA));
-    int destinationSquare = originSquare + ((isShortCastle ? Left : Right) * 2);
+    int destinationSquare = originSquare + ((isShortCastle ? (Left * 2) : (Right * 3)));
 
     *friendlyPieces &= ~(1ul << originSquare);
     state.Bitboards[Board::Rook] &= ~(1ul << originSquare);
@@ -176,7 +176,7 @@ void Move::unmake(GameState &state, Move::Encoded move, std::optional<Board::Pie
     Board::bitboard friendlyCastlingRank = (state.WhiteToPlay ? Board::RankOne : Board::RankEight);
     bool isShortCastle = (m.DestinationSquare - m.OriginSquare) == (Right * 2);
     int originSquare = std::__countr_zero(friendlyCastlingRank & (isShortCastle ? Board::FileH : Board::FileA));
-    int destinationSquare = originSquare + ((isShortCastle ? Left : Right) * 2);
+    int destinationSquare = originSquare + ((isShortCastle ? (Left * 2) : (Right * 3)));
 
     *friendlyPieces &= ~(1ul << destinationSquare);
     state.Bitboards[Board::Rook] &= ~(1ul << destinationSquare);
