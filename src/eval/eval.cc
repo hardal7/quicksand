@@ -1,5 +1,5 @@
 #include "eval.h"
-#include "../types.h"
+#include "../game.h"
 #include "tables.h"
 
 const int EndgameCutoff = 15;

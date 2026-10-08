@@ -2,7 +2,7 @@
 
 #include "../board/board.h"
 #include "../move/move.h"
-#include "../types.h"
+#include "../game.h"
 
 struct ScoredMove {
   Move::Encoded Move;

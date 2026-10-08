@@ -1,8 +1,8 @@
 #pragma once
 
 #include "../board/board.h"
-#include "../types.h"
+#include "../engine.h"
 #include <optional>
 #include <string>
 
-void handleUCI(GameState &state, int &moveTimeSeconds);
+void handleUCI(Engine &engine);

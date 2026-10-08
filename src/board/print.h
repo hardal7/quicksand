@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../types.h"
+#include "../game.h"
 #include <string>
 
 void printBoard(const GameState &state);

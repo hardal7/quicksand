@@ -17,7 +17,7 @@ __uint128_t byteSwap128(__uint128_t x) {
 std::vector<Move::Encoded> searchOpening(const GameState &state) {
   std::vector<Move::Encoded> openings;
 
-  Key positionKey = GetZobristKey(state);
+  Key positionKey = getZobristKey(state);
 
   std::ifstream file("./assets/book.bin", std::ios::binary);
   if (!file) {

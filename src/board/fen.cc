@@ -1,4 +1,4 @@
-#include "../types.h"
+#include "../game.h"
 #include "board.h"
 #include <sstream>
 #include <string>

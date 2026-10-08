@@ -1,5 +1,5 @@
 #include "../board/board.h"
-#include "../types.h"
+#include "../game.h"
 #include "move.h"
 #include <optional>
 

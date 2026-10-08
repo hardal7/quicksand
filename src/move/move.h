@@ -1,7 +1,7 @@
 #pragma once
 
 #include "../board/board.h"
-#include "../types.h"
+#include "../game.h"
 #include <algorithm>
 #include <array>
 #include <cstdint>

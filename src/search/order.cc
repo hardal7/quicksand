@@ -2,7 +2,7 @@
 #include "../board/board.h"
 #include "../eval/eval.h"
 #include "../move/move.h"
-#include "../types.h"
+#include "../game.h"
 
 OrderedList orderMoves(const GameState &state, Move::List moves) {
   OrderedList movesOrdered;

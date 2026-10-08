@@ -7,6 +7,7 @@ Search:
 - Alpha-Beta Pruning
 - Move Ordering (MVV-LVA)
 - Iterative Deepening
+- Transposition Tables
 
 Knowledge:
 - Opening Book (Polyglot)

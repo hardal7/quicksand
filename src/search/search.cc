@@ -1,18 +1,21 @@
+#include "search.h"
 #include "../eval/eval.h"
 #include "../move/move.h"
-#include "../types.h"
 #include "opening.h"
 #include "order.h"
+#include "transposition.h"
+#include <array>
 #include <chrono>
 #include <climits>
 #include <iostream>
+#include <optional>
 #include <vector>
 
 const int INFINITY = 1'000'000;
 const int TIMEOUT = INT_MAX;
 
-int searchPosition(GameState state, int depth, int &nodes, const std::chrono::steady_clock::time_point &deadline,
-                   int alpha = -INFINITY, int beta = INFINITY) {
+int searchPosition(GameState state, TTable &ttable, int depth, int &nodes,
+                   const std::chrono::steady_clock::time_point &deadline, int alpha = -INFINITY, int beta = INFINITY) {
   if (std::chrono::steady_clock::now() >= deadline) {
     return TIMEOUT;
   }
@@ -28,20 +31,32 @@ int searchPosition(GameState state, int depth, int &nodes, const std::chrono::st
 
   Move::List unorderedMoves = Move::generate(state);
   OrderedList moves = orderMoves(state, unorderedMoves);
+  Move::Encoded bestMove = Move::NoMove;
 
   for (int i = 0; i < moves.length; i++) {
     Move::Encoded m = moves.list[i].Move;
     auto captured = Move::make(state, m);
 
-    eval = searchPosition(state, depth - 1, nodes, deadline, alpha, beta);
+    std::optional<Transposition> t = searchTranspositions(state, ttable, depth);
+    if (t.has_value()) {
+      eval = t->eval;
+    } else {
+      eval = searchPosition(state, ttable, depth - 1, nodes, deadline, alpha, beta);
+    }
 
     Move::unmake(state, m, captured);
 
     if (maximizing) {
-      bestEval = std::max(bestEval, eval);
+      if (eval > bestEval) {
+        bestEval = eval;
+        bestMove = m;
+      }
       alpha = std::max(alpha, bestEval);
     } else {
-      bestEval = std::min(bestEval, eval);
+      if (eval < bestEval) {
+        bestEval = eval;
+        bestMove = m;
+      }
       beta = std::min(beta, bestEval);
     }
 
@@ -50,41 +65,48 @@ int searchPosition(GameState state, int depth, int &nodes, const std::chrono::st
     }
   }
 
+  saveTransposition(state, ttable, depth, bestEval, bestMove);
+
   return bestEval;
 }
 
-Move::Encoded searchBestMove(GameState state, int timeSeconds) {
-  std::vector<Move::Encoded> openings = searchOpening(state);
+Move::Encoded searchBestMove(Engine &engine) {
+  std::vector<Move::Encoded> openings = searchOpening(engine.state);
   if (openings.size() != 0) {
     Move::Encoded opening = openings[rand() % openings.size()];
     std::cerr << std::endl << "Using opening move: " << Move::annotation(opening);
     return opening;
   }
 
-  const auto deadline = std::chrono::steady_clock::now() + std::chrono::seconds(timeSeconds);
+  const auto deadline = std::chrono::steady_clock::now() + std::chrono::seconds(engine.moveTimeSeconds);
 
-  bool maximizing = state.WhiteToPlay;
+  bool maximizing = engine.state.WhiteToPlay;
 
   Move::Encoded bestMove = Move::NoMove, bestMoveCandidate = Move::NoMove;
-  Move::List unorderedMoves = Move::generate(state);
-  OrderedList moves = orderMoves(state, unorderedMoves);
+  Move::List unorderedMoves = Move::generate(engine.state);
+  OrderedList moves = orderMoves(engine.state, unorderedMoves);
 
   int nodes = 0;
   int searchedDepth = 0;
   int score = 0;
 
-  for (int depth = 1; depth < INFINITY; depth++) {
+  for (int depth = 1; depth <= MAX_DEPTH; depth++) {
     int bestEval = maximizing ? -INFINITY : INFINITY;
     int eval = bestEval;
     int alpha = -INFINITY, beta = INFINITY;
 
     for (int i = 0; i < moves.length; i++) {
       Move::Encoded m = moves.list[i].Move;
-      auto captured = Move::make(state, m);
+      auto captured = Move::make(engine.state, m);
 
-      eval = searchPosition(state, depth - 1, nodes, deadline, alpha, beta);
+      std::optional<Transposition> t = searchTranspositions(engine.state, engine.ttable, depth);
+      if (t.has_value()) {
+        eval = t->eval;
+      } else {
+        eval = searchPosition(engine.state, engine.ttable, depth - 1, nodes, deadline, alpha, beta);
+      }
 
-      Move::unmake(state, m, captured);
+      Move::unmake(engine.state, m, captured);
 
       if (maximizing) {
         if (eval > bestEval) {
@@ -112,9 +134,11 @@ Move::Encoded searchBestMove(GameState state, int timeSeconds) {
     } else {
       break;
     }
+
+    saveTransposition(engine.state, engine.ttable, depth, bestEval, bestMove);
   }
 
-  std::cout << "info " << "depth " << searchedDepth << " nodes " << nodes << " time " << timeSeconds << " nps "
-            << nodes / timeSeconds << " score cp " << score << std::endl;
+  std::cout << "info " << "depth " << searchedDepth << " nodes " << nodes << " time " << engine.moveTimeSeconds
+            << " nps " << nodes / engine.moveTimeSeconds << " score cp " << score << std::endl;
   return bestMove;
 }

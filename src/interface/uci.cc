@@ -1,9 +1,7 @@
-#include "uci.h"
 #include "../board/fen.h"
 #include "../board/print.h"
 #include "../move/move.h"
 #include "../search/search.h"
-#include "../types.h"
 #include <iostream>
 #include <sstream>
 #include <string>
@@ -20,7 +18,7 @@ int countWords(std::string str) {
   return count;
 }
 
-void handleUCI(GameState &state, int &moveTimeSeconds) {
+void handleUCI(Engine &engine) {
   std::string cmd;
   std::getline(std::cin, cmd);
 
@@ -60,15 +58,15 @@ void handleUCI(GameState &state, int &moveTimeSeconds) {
     const int MIN_TIME_SECONDS = 5;
     const int MILLISECOND = 1'000;
 
-    std::string colorTime = state.WhiteToPlay ? whiteTime : blackTime;
-    std::string colorIncr = state.WhiteToPlay ? whiteIncr : blackIncr;
+    std::string colorTime = engine.state.WhiteToPlay ? whiteTime : blackTime;
+    std::string colorIncr = engine.state.WhiteToPlay ? whiteIncr : blackIncr;
     int moveTimeCandidate = (std::stoi(whiteTime) / 40 + std::stoi(whiteIncr) / 2) / MILLISECOND;
-    moveTimeSeconds = std::max(moveTimeSeconds, moveTimeCandidate);
-    moveTimeSeconds = std::max(moveTimeSeconds, MIN_TIME_SECONDS);
+    engine.moveTimeSeconds = std::max(engine.moveTimeSeconds, moveTimeCandidate);
+    engine.moveTimeSeconds = std::max(engine.moveTimeSeconds, MIN_TIME_SECONDS);
 
-    Move::Encoded bestMove = searchBestMove(state, moveTimeSeconds);
-    Move::make(state, bestMove);
-    printBoard(state);
+    Move::Encoded bestMove = searchBestMove(engine);
+    Move::make(engine.state, bestMove);
+    printBoard(engine.state);
     std::cerr << "Best move: " << Move::annotation(bestMove) << std::endl;
     std::cout << "bestmove " << Move::annotation(bestMove) << std::endl;
 
@@ -85,9 +83,9 @@ void handleUCI(GameState &state, int &moveTimeSeconds) {
         fen.erase(pos);
       }
 
-      state = loadFEN(fen);
+      engine.state = loadFEN(fen);
     } else {
-      state = loadFEN();
+      engine.state = loadFEN();
     }
 
     if (cmd.find("moves") != std::string::npos) {
@@ -97,9 +95,9 @@ void handleUCI(GameState &state, int &moveTimeSeconds) {
       std::istringstream in(cmd);
       std::string word;
       while (in >> word) {
-        Move::make(state, Move::encode(state, word));
+        Move::make(engine.state, Move::encode(engine.state, word));
       }
     }
-    printBoard(state);
+    printBoard(engine.state);
   }
 }

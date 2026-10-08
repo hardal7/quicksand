@@ -1,6 +1,7 @@
 #pragma once
 
+#include "../engine.h"
 #include "../move/move.h"
-#include "../types.h"
 
-Move::Encoded searchBestMove(GameState state, int timeSeconds);
+const int MAX_DEPTH = 16;
+Move::Encoded searchBestMove(Engine &engine);

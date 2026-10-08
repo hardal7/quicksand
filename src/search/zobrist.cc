@@ -1,7 +1,7 @@
 #include "zobrist.h"
 #include "../interface/polyglot.h"
 #include "../move/move.h"
-#include "../types.h"
+#include "../game.h"
 #include <cstdint>
 
 int popLSB(uint64_t &bb) {
@@ -24,7 +24,7 @@ bool enPassantPossible(const GameState &state) {
   return false;
 }
 
-Key GetZobristKey(const GameState &state) {
+Key getZobristKey(const GameState &state) {
   Key key = 0;
 
   uint64_t white = state.Bitboards[Board::White];

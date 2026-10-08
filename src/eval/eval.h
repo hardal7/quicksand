@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../types.h"
+#include "../game.h"
 
 const std::map<Board::Piece, int> pieceValues = {
     {Board::Pawn, 100}, {Board::Knight, 350}, {Board::Bishop, 350},
